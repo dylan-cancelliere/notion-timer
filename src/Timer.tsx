@@ -1,41 +1,74 @@
-import { Stack, Group, TextInput, Button } from "@mantine/core";
-import { IconDeviceFloppy } from "@tabler/icons-react";
+import { Button, Group, Stack } from "@mantine/core";
+import classes from "./Timer.module.css";
 import { useEffect, useState } from "react";
 
-import "./index.css";
+import {
+  IconPlayerPauseFilled,
+  IconPlayerPlayFilled,
+} from "@tabler/icons-react";
 
-export const Timer = ({ clientKey }: { clientKey: string }) => {
-  const [label, setLabel] = useState("");
+export const Timer = () => {
+  const [initDate, setInitDate] = useState(Date.now());
+  const [time, setTime] = useState(0);
+  const [isRunning, setIsRunning] = useState(false);
 
   useEffect(() => {
-    window.console.log("CLIENT KEY", clientKey);
-  }, [clientKey]);
+    console.log("INIT DATE", initDate);
+    let intervalId: number;
+    if (isRunning) {
+      intervalId = setInterval(
+        () => setTime(Math.floor(Date.now() - initDate) / 10),
+        100
+      );
+    }
+    return () => clearInterval(intervalId);
+  }, [initDate, isRunning]);
+
+  const hours = Math.floor(time / 360000);
+  const minutes = Math.floor((time % 360000) / 6000);
+  const seconds = Math.floor((time % 6000) / 100);
 
   return (
     <Stack>
       <Group>
-        <TextInput
-          variant="filled"
-          placeholder="Enter label..."
-          onChange={(e) => setLabel(e.currentTarget.value)}
-        />
+        <p className={classes.mainTimer}>
+          {hours.toString().padStart(2, "0")}
+          <span className={classes.blinkingDots}>:</span>
+          {minutes.toString().padStart(2, "0")}
+          <span className={classes.blinkingDots}>:</span>
+          {seconds.toString().padStart(2, "0")}
+        </p>
+        {isRunning ? (
+          <Button
+            variant="outline"
+            leftSection={<IconPlayerPauseFilled />}
+            onClick={() => setIsRunning(!isRunning)}
+          >
+            Stop
+          </Button>
+        ) : (
+          <Button
+            variant="filled"
+            leftSection={<IconPlayerPlayFilled />}
+            onClick={() => {
+              setIsRunning(!isRunning);
+              setInitDate(Date.now());
+            }}
+          >
+            Start
+          </Button>
+        )}
         <Button
-          leftSection={<IconDeviceFloppy />}
+          variant="outline"
+          color="red"
           onClick={() => {
-            window.console.log("LABEL:", label);
-            localStorage.setItem("TEST", label);
+            setIsRunning(false);
+            setTime(0);
           }}
         >
-          Save
+          Clear
         </Button>
       </Group>
-      <Button
-        onClick={() => {
-          window.console.log("LOCAL STORAGE:", localStorage.getItem("TEST"));
-        }}
-      >
-        LOAD FROM LOCAL STORAGE
-      </Button>
     </Stack>
   );
 };
