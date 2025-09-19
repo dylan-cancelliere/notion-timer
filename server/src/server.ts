@@ -6,6 +6,7 @@ import mysql from "mysql2/promise";
 import { Connector } from "@google-cloud/cloud-sql-connector";
 import { SecretManagerServiceClient } from "@google-cloud/secret-manager";
 import { User } from "./models";
+import { getLastSession } from "./api";
 
 const INSTANCE_CONNECTION_NAME = "notion-timer:us-central1:notion-timer-db";
 
@@ -44,8 +45,12 @@ app.set("trust proxy", true);
 const client = new SecretManagerServiceClient();
 
 async function accessSecretVersion(secretName: string) {
-  const [version] = await client.accessSecretVersion({ name: secretName });
-  return version.payload?.data;
+  try {
+    const [version] = await client.accessSecretVersion({ name: secretName });
+    return version.payload?.data;
+  } catch (err) {
+    console.error(err);
+  }
 }
 
 const createPool = async () => {
@@ -106,6 +111,17 @@ app.get("/", async (req, res) => {
   } catch (err) {
     console.log(err);
     res.send("Error processing query:\n" + err);
+  }
+});
+
+app.get("/user/:userId/lastSession", async (req, res) => {
+  pool = pool || (await createPool());
+  try {
+    const session = getLastSession(req.params.userId, pool);
+    res.send(session);
+  } catch (e) {
+    console.log(e);
+    res.send("Error retrieving last session" + e);
   }
 });
 
