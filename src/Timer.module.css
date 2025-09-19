@@ -10,7 +10,7 @@
   transform: scaleY(1.5);
   font-size: 4em;
   font-weight: 500;
-  margin-bottom: var(--mantine-spacing-md);
+  margin: var(--mantine-spacing-md) auto var(--mantine-spacing-md) 0;
   margin-right: auto;
 }
 

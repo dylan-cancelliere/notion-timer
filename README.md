@@ -4,3 +4,4 @@ Notes:
   - change size of widget
   - manage previous entries
   - switch user id(?)
+- auto saving timer

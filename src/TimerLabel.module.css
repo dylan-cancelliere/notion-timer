@@ -1,0 +1,15 @@
+input {
+  height: 4em;
+  font-size: 4em;
+  border: none;
+  border-radius: var(--mantine-radius-sm);
+  &:focus {
+    outline: none;
+  }
+  &::placeholder {
+  }
+  &:hover {
+    /* background-color: purple; */
+    background-color: #00000020;
+  }
+}
