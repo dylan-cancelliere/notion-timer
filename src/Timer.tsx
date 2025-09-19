@@ -29,35 +29,28 @@ export const Timer = () => {
   const seconds = Math.floor((time % 6000) / 100);
 
   return (
-    <Stack>
+    <Stack w={350} maw={350}>
+      <p className={classes.mainTimer}>
+        {hours.toString().padStart(2, "0")}
+        <span className={isRunning ? undefined : classes.blinkingDots}>:</span>
+        {minutes.toString().padStart(2, "0")}
+        <span className={isRunning ? undefined : classes.blinkingDots}>:</span>
+        {seconds.toString().padStart(2, "0")}
+      </p>
       <Group>
-        <p className={classes.mainTimer}>
-          {hours.toString().padStart(2, "0")}
-          <span className={classes.blinkingDots}>:</span>
-          {minutes.toString().padStart(2, "0")}
-          <span className={classes.blinkingDots}>:</span>
-          {seconds.toString().padStart(2, "0")}
-        </p>
-        {isRunning ? (
-          <Button
-            variant="outline"
-            leftSection={<IconPlayerPauseFilled />}
-            onClick={() => setIsRunning(!isRunning)}
-          >
-            Stop
-          </Button>
-        ) : (
-          <Button
-            variant="filled"
-            leftSection={<IconPlayerPlayFilled />}
-            onClick={() => {
-              setIsRunning(!isRunning);
-              setInitDate(Date.now());
-            }}
-          >
-            Start
-          </Button>
-        )}
+        <Button
+          variant={isRunning ? "outline" : "filled"}
+          leftSection={
+            isRunning ? <IconPlayerPauseFilled /> : <IconPlayerPlayFilled />
+          }
+          onClick={() => {
+            if (!isRunning) setInitDate(Date.now());
+            setIsRunning(!isRunning);
+          }}
+          flex={2}
+        >
+          {isRunning ? "Pause" : "Start"}
+        </Button>
         <Button
           variant="outline"
           color="red"

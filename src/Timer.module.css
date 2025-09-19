@@ -10,20 +10,25 @@
   transform: scaleY(1.5);
   font-size: 4em;
   font-weight: 500;
+  margin-bottom: var(--mantine-spacing-md);
+  margin-right: auto;
 }
 
 .blinkingDots {
-  animation: blinker 3s linear infinite;
+  animation: blinker 1.5s linear infinite;
 }
 
 @keyframes blinker {
-  49.9% {
+  29.9% {
     opacity: 1;
   }
-  50% {
+  30% {
     opacity: 0;
   }
-  99.9% {
+  69.9% {
     opacity: 0;
+  }
+  70% {
+    opacity: 1;
   }
 }
