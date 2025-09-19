@@ -34,7 +34,7 @@ const connectWithConnector = async (config: mysql.PoolOptions) => {
 const app = express();
 
 const corsOptions = {
-  origin: ["https://notion-timer-5v3.pages.dev/", "http://localhost:8007"],
+  origin: ["https://notion-timer-5v3.pages.dev/", "http://localhost:5173"],
   optionsSuccessStatus: 200,
 };
 
@@ -117,8 +117,9 @@ app.get("/", async (req, res) => {
 app.get("/user/:userId/lastSession", async (req, res) => {
   pool = pool || (await createPool());
   try {
-    const session = getLastSession(req.params.userId, pool);
-    res.send(session);
+    const session = await getLastSession(req.params.userId, pool);
+    console.log("SESSION", session);
+    res.send({ session });
   } catch (e) {
     console.log(e);
     res.send("Error retrieving last session" + e);
