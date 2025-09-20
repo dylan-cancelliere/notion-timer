@@ -11,7 +11,6 @@ import {
 import { modals } from "@mantine/modals";
 import { IconCheck, IconCopy, IconDotsVertical } from "@tabler/icons-react";
 import { useState } from "react";
-import { useLoginContext } from "./context/context";
 
 const ShowUserId = () => {
   const [show, setShow] = useState(false);
@@ -48,11 +47,12 @@ const ShowUserId = () => {
 };
 
 const ChangeTaskList = () => {
-  const {} = useLoginContext();
+  //   const {} = useLoginContext();
+  return <Stack></Stack>;
 };
 
 const OptionsList = () => {
-  const options = [<ShowUserId />];
+  const options = [<ShowUserId />, <ChangeTaskList />];
   return (
     <Stack>
       {options.map((it) => (
