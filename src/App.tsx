@@ -1,20 +1,19 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Timer } from "./Timer";
 import { TextInput, Modal, Stack, Text, Button } from "@mantine/core";
 import { IconLogin } from "@tabler/icons-react";
 import { UserContextProvider } from "./context/UserContextProvider";
-import { UserIdContext } from "./context/context";
+
 import { notify } from "./utils";
+import { UserContext } from "./context/context";
 
 const LOCAL_STORAGE_KEY = "notion-timer-user-id";
 
-function App() {
+const AuthWrapper = () => {
   const [userId, setUserId] = useState(
     new URLSearchParams(location.search).get("userId")
   );
-
-  const [userInput, setUserInput] = useState<string>();
 
   useEffect(() => {
     if (!userId) {
@@ -29,48 +28,55 @@ function App() {
   }, [userId]);
 
   return (
+    <UserContextProvider userId={userId}>
+      <App setUserId={setUserId} />
+    </UserContextProvider>
+  );
+};
+
+const App = ({ setUserId }: { setUserId: (id: string) => void }) => {
+  const [userInput, setUserInput] = useState<string>();
+  const auth = useContext(UserContext);
+
+  return (
     <Stack h="100%" w="100%" align="center">
       <Stack h="100%" justify="center">
-        <UserIdContext value={{ userId }}>
-          {userId ? (
-            <UserContextProvider>
-              <Timer />
-            </UserContextProvider>
-          ) : (
-            <Modal
-              centered
-              opened
-              withCloseButton={false}
-              onClose={() => {}}
-              title={<Text size="xl">Login</Text>}
+        {auth?.currentSession ? (
+          <Timer />
+        ) : (
+          <Modal
+            centered
+            opened
+            withCloseButton={false}
+            onClose={() => {}}
+            title={<Text size="xl">Login</Text>}
+          >
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (!userInput) {
+                  notify.error("Invalid user ID");
+                  return;
+                }
+                setUserId(userInput);
+              }}
             >
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  if (!userInput) {
-                    notify.error("Invalid user ID");
-                    return;
-                  }
-                  setUserId(userInput);
-                }}
-              >
-                <Stack>
-                  <TextInput
-                    label="Enter user ID"
-                    placeholder="Enter ID..."
-                    onChange={(e) => setUserInput(e.currentTarget.value)}
-                  />
-                  <Button rightSection={<IconLogin />} type="submit">
-                    Login
-                  </Button>
-                </Stack>
-              </form>
-            </Modal>
-          )}
-        </UserIdContext>
+              <Stack>
+                <TextInput
+                  label="Enter user ID"
+                  placeholder="Enter ID..."
+                  onChange={(e) => setUserInput(e.currentTarget.value)}
+                />
+                <Button rightSection={<IconLogin />} type="submit">
+                  Login
+                </Button>
+              </Stack>
+            </form>
+          </Modal>
+        )}
       </Stack>
     </Stack>
   );
-}
+};
 
-export default App;
+export default AuthWrapper;

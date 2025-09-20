@@ -5,8 +5,7 @@ import express from "express";
 import mysql from "mysql2/promise";
 import { Connector } from "@google-cloud/cloud-sql-connector";
 import { SecretManagerServiceClient } from "@google-cloud/secret-manager";
-import { IUser } from "./models";
-import { getLastSession } from "./api";
+import { getLastSession, updateSessionLabel } from "./api";
 
 const INSTANCE_CONNECTION_NAME = "notion-timer:us-central1:notion-timer-db";
 
@@ -40,6 +39,7 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.set("trust proxy", true);
 
 const client = new SecretManagerServiceClient();
@@ -101,28 +101,32 @@ app.use(async (req, res, next) => {
   }
 });
 
-app.get("/", async (req, res) => {
-  pool = pool || (await createPool());
-  try {
-    const [users] = await pool.query<IUser[]>(
-      "SELECT * from `notion-timer`.users"
-    );
-    res.send(users);
-  } catch (err) {
-    console.log(err);
-    res.send("Error processing query:\n" + err);
-  }
-});
-
 app.get("/user/:userId/lastSession", async (req, res) => {
   pool = pool || (await createPool());
   try {
     const session = await getLastSession(req.params.userId, pool);
-    console.log("SESSION", session);
     res.send({ session });
   } catch (e) {
     console.log(e);
     res.send("Error retrieving last session" + e);
+  }
+});
+
+app.post("/session/:sessionId/label", async (req, res) => {
+  pool = pool || (await createPool());
+  try {
+    console.log("REQ BODY:", req.body, req.params.sessionId);
+    const maybeLabel = req.body?.label;
+    if (typeof maybeLabel != "string") {
+      res.status(422).send("Invalid request body");
+      return;
+    }
+    await updateSessionLabel(req.params.sessionId, req.body.label, pool);
+
+    res.send(200);
+  } catch (e) {
+    console.log(e);
+    res.send("Error updating label" + e);
   }
 });
 
