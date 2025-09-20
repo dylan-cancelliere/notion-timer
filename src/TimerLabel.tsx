@@ -14,10 +14,7 @@ export const TimerLabel = () => {
 
   useEffect(() => {
     if (labelText == currentSession.session_label) return;
-    if (!labelText) {
-      notify.error("Label cannot be empty");
-      return;
-    }
+    if (!labelText) return;
     updateSessionLabel(currentSession.session_id, labelText)
       .then(refetchUserContext)
       .then(() => notify.success("Updated label"));

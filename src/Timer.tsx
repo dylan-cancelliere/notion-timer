@@ -10,6 +10,7 @@ import {
 import { TimerLabel } from "./TimerLabel";
 import { updateSessionTime } from "./api";
 import { useLoginContext } from "./context/context";
+import { OptionsModal } from "./OptionsModal";
 
 export const Timer = () => {
   const { currentSession } = useLoginContext();
@@ -54,7 +55,10 @@ export const Timer = () => {
 
   return (
     <Stack w={350} maw={350}>
-      <TimerLabel />
+      <Group wrap="nowrap" gap="xs">
+        <TimerLabel />
+        <OptionsModal />
+      </Group>
       <p className={classes.mainTimer}>
         {hours.toString().padStart(2, "0")}
         <span className={isRunning ? undefined : classes.blinkingDots}>:</span>
