@@ -12,7 +12,7 @@ import { Notifications } from "@mantine/notifications";
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <MantineProvider>
-      <Notifications />
+      <Notifications position="top-right" />
       <ModalsProvider modalProps={{ centered: true, xOffset: 0 }}>
         <App />
       </ModalsProvider>

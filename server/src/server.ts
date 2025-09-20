@@ -33,7 +33,7 @@ const connectWithConnector = async (config: mysql.PoolOptions) => {
 const app = express();
 
 const corsOptions = {
-  origin: ["https://notion-timer-5v3.pages.dev/", "http://localhost:5173"],
+  origin: ["https://notion-timer-5v3.pages.dev", "http://localhost:5173"],
   optionsSuccessStatus: 200,
 };
 

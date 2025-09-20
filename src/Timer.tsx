@@ -35,17 +35,18 @@ export const Timer = () => {
   // If the timer is running, auto-save every minute
   useEffect(() => {
     const interval = setInterval(() => {
+      console.log("AUTOSAVING", isRunning);
       if (isRunning)
         updateSessionTime(
           currentSession.session_id,
           Math.floor(calcTime.current)
-        );
+        ).then(() => console.log("saved"));
     }, 60000);
 
     return () => {
       clearInterval(interval);
     };
-  }, []);
+  }, [isRunning]);
 
   const hours = Math.floor(calcTime.current / 360000);
   const minutes = Math.floor((calcTime.current % 360000) / 6000);

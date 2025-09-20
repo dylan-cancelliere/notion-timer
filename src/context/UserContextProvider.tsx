@@ -23,10 +23,6 @@ export const UserContextProvider = ({
       .catch(notify.error);
   }, [userId]);
 
-  useEffect(() => {
-    console.log("DATA UPDATE", data);
-  }, [data]);
-
   return (
     <UserContext value={data ? { currentSession: data } : null}>
       <Box pos="relative">
