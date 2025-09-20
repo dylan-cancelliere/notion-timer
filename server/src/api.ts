@@ -17,13 +17,20 @@ export async function createNewSession(userId: string, pool: Pool) {
 }
 
 export async function getLastSession(userId: string, pool: Pool) {
-  const sql = `select * from \`notion-timer\`.\`user_sessions\` where user_id = ? order by last_updated limit 1`;
+  const sql = `select * from \`notion-timer\`.\`user_sessions\` where user_id = ? order by last_updated desc limit 1`;
   const [session] = await pool.query<ISession[]>(sql, userId);
 
   if (session.length == 0) {
     return await createNewSession(userId, pool);
   }
   return session[0];
+}
+
+export async function getAllSessions(userId: string, pool: Pool) {
+  const sql = `select * from \`notion-timer\`.\`user_sessions\` where user_id = ? order by last_updated`;
+  const [sessions] = await pool.query<ISession[]>(sql, userId);
+
+  return sessions;
 }
 
 export async function updateSessionLabel(
