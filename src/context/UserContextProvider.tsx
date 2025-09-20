@@ -1,4 +1,4 @@
-import { type ReactNode, useState, useEffect } from "react";
+import { type ReactNode, useState, useEffect, useCallback } from "react";
 import { UserContext } from "./context";
 import type { Session } from "../../server/src/models";
 import { getLastSession } from "../api";
@@ -14,7 +14,8 @@ export const UserContextProvider = ({
 }) => {
   const [data, setData] = useState<Session>();
   const [loading, setLoading] = useState(false);
-  useEffect(() => {
+
+  const fetchUserContext = useCallback(() => {
     if (!userId) return;
     setLoading(true);
     getLastSession(userId)
@@ -23,8 +24,18 @@ export const UserContextProvider = ({
       .catch(notify.error);
   }, [userId]);
 
+  useEffect(() => {
+    fetchUserContext();
+  }, [fetchUserContext]);
+
   return (
-    <UserContext value={data ? { currentSession: data } : null}>
+    <UserContext
+      value={
+        data
+          ? { currentSession: data, refetchUserContext: fetchUserContext }
+          : null
+      }
+    >
       <Box pos="relative">
         <LoadingOverlay
           visible={loading}
