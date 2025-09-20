@@ -1,4 +1,4 @@
-import { ActionIcon, Group } from "@mantine/core";
+import { ActionIcon, Group, Loader } from "@mantine/core";
 import classes from "./TimerLabel.module.css";
 import { IconDeviceFloppy } from "@tabler/icons-react";
 import { useState } from "react";
@@ -9,6 +9,7 @@ import { useLoginContext } from "./context/context";
 export const TimerLabel = () => {
   const { currentSession } = useLoginContext();
   const [labelText, setLabelText] = useState(currentSession.session_label);
+  const [loading, setLoading] = useState(false);
 
   return (
     <form
@@ -18,7 +19,10 @@ export const TimerLabel = () => {
           notify.error("Label cannot be empty");
           return;
         }
-        updateSessionLabel(currentSession.session_id, labelText);
+        setLoading(true);
+        updateSessionLabel(currentSession.session_id, labelText)
+          .then(() => notify.success("Updated label"))
+          .finally(() => setLoading(false));
       }}
     >
       <Group wrap="nowrap">
@@ -31,9 +35,13 @@ export const TimerLabel = () => {
           className={classes.input}
           onChange={(e) => setLabelText(e.currentTarget.value)}
         />
-        <ActionIcon variant="subtle" type="submit" aria-label="Save label">
-          <IconDeviceFloppy />
-        </ActionIcon>
+        {loading ? (
+          <Loader size="sm" />
+        ) : (
+          <ActionIcon variant="subtle" type="submit" aria-label="Save label">
+            <IconDeviceFloppy />
+          </ActionIcon>
+        )}
       </Group>
     </form>
   );

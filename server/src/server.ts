@@ -5,7 +5,7 @@ import express from "express";
 import mysql from "mysql2/promise";
 import { Connector } from "@google-cloud/cloud-sql-connector";
 import { SecretManagerServiceClient } from "@google-cloud/secret-manager";
-import { getLastSession, updateSessionLabel } from "./api";
+import { getLastSession, updateSessionLabel, updateSessionTime } from "./api";
 
 const INSTANCE_CONNECTION_NAME = "notion-timer:us-central1:notion-timer-db";
 
@@ -115,18 +115,32 @@ app.get("/user/:userId/lastSession", async (req, res) => {
 app.post("/session/:sessionId/label", async (req, res) => {
   pool = pool || (await createPool());
   try {
-    console.log("REQ BODY:", req.body, req.params.sessionId);
     const maybeLabel = req.body?.label;
     if (typeof maybeLabel != "string") {
       res.status(422).send("Invalid request body");
       return;
     }
-    await updateSessionLabel(req.params.sessionId, req.body.label, pool);
+    await updateSessionLabel(req.params.sessionId, maybeLabel, pool);
 
-    res.send(200);
+    res.status(200).send();
   } catch (e) {
     console.log(e);
     res.send("Error updating label" + e);
+  }
+});
+
+app.post("/session/:sessionId/time", async (req, res) => {
+  pool = pool || (await createPool());
+  try {
+    const maybeTime = parseInt(req.body?.time);
+    if (!maybeTime) {
+      res.status(422).send("Invalid request body");
+    }
+    await updateSessionTime(req.params.sessionId, maybeTime, pool);
+    res.status(200).send();
+  } catch (e) {
+    console.log(e);
+    res.send("Error updating session time" + e);
   }
 });
 

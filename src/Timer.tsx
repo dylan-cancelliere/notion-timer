@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { Button, Group, Stack } from "@mantine/core";
 import classes from "./Timer.module.css";
 import { useEffect, useRef, useState } from "react";
@@ -7,10 +8,13 @@ import {
   IconPlayerPlayFilled,
 } from "@tabler/icons-react";
 import { TimerLabel } from "./TimerLabel";
+import { updateSessionTime } from "./api";
+import { useLoginContext } from "./context/context";
 
 export const Timer = () => {
+  const { currentSession } = useLoginContext();
   const [compareDate, setCompareDate] = useState(Date.now());
-  const [prevTime, setPrevTime] = useState(0);
+  const [prevTime, setPrevTime] = useState(currentSession.session_length);
   const [time, setTime] = useState(0);
   const calcTime = useRef(0);
   calcTime.current = prevTime + time;
@@ -27,6 +31,21 @@ export const Timer = () => {
     }
     return () => clearInterval(intervalId);
   }, [compareDate, isRunning]);
+
+  // If the timer is running, auto-save every minute
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (isRunning)
+        updateSessionTime(
+          currentSession.session_id,
+          Math.floor(calcTime.current)
+        );
+    }, 60000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, []);
 
   const hours = Math.floor(calcTime.current / 360000);
   const minutes = Math.floor((calcTime.current % 360000) / 6000);
@@ -53,6 +72,10 @@ export const Timer = () => {
               // on pause
               setPrevTime(prevTime + time);
               setTime(0);
+              updateSessionTime(
+                currentSession.session_id,
+                Math.floor(calcTime.current)
+              );
             } else {
               // on play
               setCompareDate(Date.now());

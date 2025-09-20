@@ -34,3 +34,12 @@ export async function updateSessionLabel(
   const sql = `UPDATE \`notion-timer\`.\`user_sessions\` SET last_updated = now(), session_label = ? WHERE session_id = ?;`;
   await pool.query(sql, [label, sessionId]);
 }
+
+export async function updateSessionTime(
+  sessionId: string,
+  time: number,
+  pool: Pool
+) {
+  const sql = `UPDATE \`notion-timer\`.\`user_sessions\` SET last_updated = now(), session_length = ? WHERE session_id = ?;`;
+  await pool.query(sql, [time, sessionId]);
+}

@@ -17,3 +17,13 @@ export async function updateSessionLabel(sessionId: string, label: string) {
     body: JSON.stringify({ label }),
   });
 }
+
+export async function updateSessionTime(sessionId: string, time: number) {
+  return fetch(`${API_BASE}/session/${sessionId}/time`, {
+    method: "post",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ time }),
+  });
+}
