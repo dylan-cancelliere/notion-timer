@@ -5,7 +5,7 @@ import express from "express";
 import mysql from "mysql2/promise";
 import { Connector } from "@google-cloud/cloud-sql-connector";
 import { SecretManagerServiceClient } from "@google-cloud/secret-manager";
-import { User } from "./models";
+import { IUser } from "./models";
 import { getLastSession } from "./api";
 
 const INSTANCE_CONNECTION_NAME = "notion-timer:us-central1:notion-timer-db";
@@ -104,7 +104,7 @@ app.use(async (req, res, next) => {
 app.get("/", async (req, res) => {
   pool = pool || (await createPool());
   try {
-    const [users] = await pool.query<User[]>(
+    const [users] = await pool.query<IUser[]>(
       "SELECT * from `notion-timer`.users"
     );
     res.send(users);

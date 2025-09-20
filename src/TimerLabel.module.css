@@ -1,15 +1,17 @@
-input {
-  height: 4em;
-  font-size: 4em;
+.input {
+  height: 2em;
+  font-size: 2em;
   border: none;
   border-radius: var(--mantine-radius-sm);
+  flex-shrink: 1;
   &:focus {
     outline: none;
-  }
-  &::placeholder {
+    background-color: #00000010;
   }
   &:hover {
     /* background-color: purple; */
     background-color: #00000020;
+  }
+  &::placeholder {
   }
 }
