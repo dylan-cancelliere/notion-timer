@@ -50,3 +50,9 @@ export async function updateSessionTime(
   const sql = `UPDATE \`notion-timer\`.\`user_sessions\` SET last_updated = now(), session_length = ? WHERE session_id = ?;`;
   await pool.query(sql, [time, sessionId]);
 }
+
+export async function getUserContext(userId: string, pool: Pool) {
+  const sql = `select * from users left join user_sessions on users.user_id = user_sessions.user_id
+    where users.user_id = ? order by user_sessions.last_updated desc`;
+  const [res] = await pool.query(sql, userId);
+}
