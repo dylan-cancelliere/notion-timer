@@ -1,7 +1,7 @@
 import { type ReactNode, useState, useEffect, useCallback } from "react";
 import { UserContext } from "./context";
-import type { Session } from "../../server/src/models";
-import { getLastSession } from "../api";
+import type { Session, User } from "../../server/src/models";
+import { getUserContext } from "../api";
 import { notify } from "../utils";
 import { Box, LoadingOverlay } from "@mantine/core";
 
@@ -12,14 +12,23 @@ export const UserContextProvider = ({
   children?: ReactNode;
   userId: string | null;
 }) => {
-  const [data, setData] = useState<Session>();
+  const [ctx, setCtx] = useState<{
+    user: User;
+    sessions: Session[];
+  }>();
+  const [currentSession, setCurrentSession] = useState<Session>();
   const [loading, setLoading] = useState(false);
 
   const fetchUserContext = useCallback(() => {
     if (!userId) return;
     setLoading(true);
-    getLastSession(userId)
-      .then(({ session }) => setData(session))
+    getUserContext(userId)
+      .then(({ context }) => {
+        setCtx({ ...context });
+        setCurrentSession(
+          context.sessions.length > 0 ? context.sessions[0] : undefined
+        );
+      })
       .finally(() => setLoading(false))
       .catch(notify.error);
   }, [userId]);
@@ -31,8 +40,14 @@ export const UserContextProvider = ({
   return (
     <UserContext
       value={
-        data
-          ? { currentSession: data, refetchUserContext: fetchUserContext }
+        ctx && currentSession
+          ? {
+              user: ctx.user,
+              sessions: ctx.sessions,
+              currentSession,
+              changeCurrentSession: setCurrentSession,
+              refetchUserContext: fetchUserContext,
+            }
           : null
       }
     >

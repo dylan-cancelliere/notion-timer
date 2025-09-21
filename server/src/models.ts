@@ -12,5 +12,6 @@ export type Session = RowDataPacket & {
   session_id: string;
   session_label: string;
   session_length: number;
-  session_ts: string;
+  last_updated: string;
+  created_at: string;
 };
