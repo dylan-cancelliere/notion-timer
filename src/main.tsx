@@ -1,8 +1,8 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { ModalsProvider } from "@mantine/modals";
-import "./index.css";
-import App from "./App.tsx";
+import "@src/index.css";
+import App from "@src/App.tsx";
 import "@mantine/core/styles.css";
 import "@mantine/notifications/styles.css";
 

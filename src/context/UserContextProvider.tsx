@@ -1,8 +1,8 @@
 import { type ReactNode, useState, useEffect, useCallback } from "react";
-import { UserContext } from "./context";
-import type { Session, User } from "../../server/src/models";
-import { getUserContext } from "../api";
-import { notify } from "../utils";
+import { UserContext } from "@src/context/context";
+import type { Session, User } from "@server/src/models";
+import { getUserContext } from "@src/api";
+import { notify } from "@src/utils";
 import { Box, LoadingOverlay } from "@mantine/core";
 
 export const UserContextProvider = ({

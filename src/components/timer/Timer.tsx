@@ -7,10 +7,10 @@ import {
   IconPlayerPauseFilled,
   IconPlayerPlayFilled,
 } from "@tabler/icons-react";
-import { TimerLabel } from "./TimerLabel";
-import { updateSessionTime } from "./api";
-import { useLoginContext } from "./context/context";
-import { OptionsModal } from "./OptionsModal";
+import { TimerLabel } from "@src/components/timer/TimerLabel";
+import { updateSessionTime } from "@src/api";
+import { useLoginContext } from "@src/context/context";
+import { OptionsModal } from "@src/components/options/OptionsModal";
 
 export const Timer = () => {
   const { currentSession } = useLoginContext();

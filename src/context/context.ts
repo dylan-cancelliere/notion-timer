@@ -1,5 +1,5 @@
 import { createContext, useContext } from "react";
-import type { Session, User } from "../../server/src/models";
+import type { Session, User } from "@server/src/models";
 
 export type UserContextType = {
   user: User;

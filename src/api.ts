@@ -1,4 +1,4 @@
-import type { Session, User } from "../server/src/models";
+import type { Session, User } from "@server/src/models";
 const API_BASE = "https://notion-timer.uk.r.appspot.com";
 
 export async function getLastSession(userId: string) {

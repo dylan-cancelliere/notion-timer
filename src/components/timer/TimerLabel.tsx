@@ -1,9 +1,9 @@
 import classes from "./TimerLabel.module.css";
 import { useEffect } from "react";
-import { updateSessionLabel } from "./api";
-import { notify } from "./utils";
+import { updateSessionLabel } from "@src/api";
+import { notify } from "@src/utils";
 import { useDebouncedState } from "@mantine/hooks";
-import { useLoginContext } from "./context/context";
+import { useLoginContext } from "@src/context/context";
 
 export const TimerLabel = () => {
   const { currentSession, refetchUserContext } = useLoginContext();

@@ -1,12 +1,12 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useContext, useEffect, useState } from "react";
-import { Timer } from "./Timer";
 import { TextInput, Modal, Stack, Text, Button } from "@mantine/core";
 import { IconLogin } from "@tabler/icons-react";
-import { UserContextProvider } from "./context/UserContextProvider";
+import { UserContextProvider } from "@src/context/UserContextProvider";
 
-import { notify } from "./utils";
-import { UserContext } from "./context/context";
+import { notify } from "@src/utils";
+import { UserContext } from "@src/context/context";
+import { Timer } from "@src/components/timer/Timer";
 
 const LOCAL_STORAGE_KEY = "notion-timer-user-id";
 
