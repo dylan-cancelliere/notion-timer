@@ -6,7 +6,9 @@ export type UserContextType = {
   sessions: Session[];
   currentSession: Session;
   changeCurrentSession: (s: Session) => void;
-  refetchUserContext: () => void;
+  refetchUserContext: () => Promise<string | void>;
+  timerIsRunning: boolean;
+  setTimerIsRunning: (isRunning: boolean) => void;
 };
 
 export const UserContext = createContext<UserContextType | null>(null);

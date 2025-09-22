@@ -13,31 +13,33 @@ import { useLoginContext } from "@src/context/context";
 import { OptionsModal } from "@src/components/options/OptionsModal";
 
 export const Timer = () => {
-  const { currentSession } = useLoginContext();
+  const { currentSession, timerIsRunning, setTimerIsRunning } =
+    useLoginContext();
   const [compareDate, setCompareDate] = useState(Date.now());
   const [prevTime, setPrevTime] = useState(currentSession.session_length);
   const [time, setTime] = useState(0);
   const calcTime = useRef(0);
   calcTime.current = prevTime + time;
 
-  const [isRunning, setIsRunning] = useState(false);
+  useEffect(() => {
+    setPrevTime(currentSession.session_length);
+  }, [currentSession.session_id]);
 
   useEffect(() => {
-    let intervalId: number;
-    if (isRunning) {
+    let intervalId: NodeJS.Timeout;
+    if (timerIsRunning) {
       intervalId = setInterval(
         () => setTime(Math.floor(Date.now() - compareDate) / 10),
         100
       );
     }
     return () => clearInterval(intervalId);
-  }, [compareDate, isRunning]);
+  }, [compareDate, timerIsRunning]);
 
   // If the timer is running, auto-save every minute
   useEffect(() => {
     const interval = setInterval(() => {
-      console.log("AUTOSAVING", isRunning);
-      if (isRunning)
+      if (timerIsRunning)
         updateSessionTime(
           currentSession.session_id,
           Math.floor(calcTime.current)
@@ -47,7 +49,7 @@ export const Timer = () => {
     return () => {
       clearInterval(interval);
     };
-  }, [isRunning]);
+  }, [timerIsRunning]);
 
   const hours = Math.floor(calcTime.current / 360000);
   const minutes = Math.floor((calcTime.current % 360000) / 6000);
@@ -61,19 +63,27 @@ export const Timer = () => {
       </Group>
       <p className={classes.mainTimer}>
         {hours.toString().padStart(2, "0")}
-        <span className={isRunning ? undefined : classes.blinkingDots}>:</span>
+        <span className={timerIsRunning ? undefined : classes.blinkingDots}>
+          :
+        </span>
         {minutes.toString().padStart(2, "0")}
-        <span className={isRunning ? undefined : classes.blinkingDots}>:</span>
+        <span className={timerIsRunning ? undefined : classes.blinkingDots}>
+          :
+        </span>
         {seconds.toString().padStart(2, "0")}
       </p>
       <Group>
         <Button
-          variant={isRunning ? "outline" : "filled"}
+          variant={timerIsRunning ? "outline" : "filled"}
           leftSection={
-            isRunning ? <IconPlayerPauseFilled /> : <IconPlayerPlayFilled />
+            timerIsRunning ? (
+              <IconPlayerPauseFilled />
+            ) : (
+              <IconPlayerPlayFilled />
+            )
           }
           onClick={() => {
-            if (isRunning) {
+            if (timerIsRunning) {
               // on pause
               setPrevTime(prevTime + time);
               setTime(0);
@@ -85,17 +95,17 @@ export const Timer = () => {
               // on play
               setCompareDate(Date.now());
             }
-            setIsRunning(!isRunning);
+            setTimerIsRunning(!timerIsRunning);
           }}
           flex={2}
         >
-          {isRunning ? "Pause" : "Start"}
+          {timerIsRunning ? "Pause" : "Start"}
         </Button>
         <Button
           variant="outline"
           color="red"
           onClick={() => {
-            setIsRunning(false);
+            setTimerIsRunning(false);
             setPrevTime(0);
             setTime(0);
           }}

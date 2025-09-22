@@ -7,6 +7,7 @@ import { UserContextProvider } from "@src/context/UserContextProvider";
 import { notify } from "@src/utils";
 import { UserContext } from "@src/context/context";
 import { Timer } from "@src/components/timer/Timer";
+import { ModalsProvider } from "@mantine/modals";
 
 const LOCAL_STORAGE_KEY = "notion-timer-user-id";
 
@@ -29,7 +30,9 @@ const AuthWrapper = () => {
 
   return (
     <UserContextProvider userId={userId}>
-      <App setUserId={setUserId} />
+      <ModalsProvider modalProps={{ centered: true, xOffset: 0 }}>
+        <App setUserId={setUserId} />
+      </ModalsProvider>
     </UserContextProvider>
   );
 };

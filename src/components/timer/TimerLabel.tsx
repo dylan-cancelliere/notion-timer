@@ -1,29 +1,32 @@
 import classes from "./TimerLabel.module.css";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { updateSessionLabel } from "@src/api";
 import { notify } from "@src/utils";
-import { useDebouncedState } from "@mantine/hooks";
+import { useDebouncedValue } from "@mantine/hooks";
 import { useLoginContext } from "@src/context/context";
+
+//
 
 export const TimerLabel = () => {
   const { currentSession, refetchUserContext } = useLoginContext();
-  const [labelText, setLabelText] = useDebouncedState(
-    currentSession.session_label,
-    1000
-  );
+  const [labelText, setLabelText] = useState(currentSession.session_label);
+  const [debouncedLabelText] = useDebouncedValue(labelText, 1000);
 
   useEffect(() => {
-    if (labelText == currentSession.session_label) return;
-    if (!labelText) return;
-    updateSessionLabel(currentSession.session_id, labelText)
+    setLabelText(currentSession.session_label);
+  }, [currentSession.session_id, currentSession.session_label]);
+
+  useEffect(() => {
+    if (
+      !debouncedLabelText ||
+      debouncedLabelText == currentSession.session_label
+    )
+      return;
+    updateSessionLabel(currentSession.session_id, debouncedLabelText)
       .then(refetchUserContext)
       .then(() => notify.success("Updated label"));
-  }, [
-    labelText,
-    currentSession.session_label,
-    currentSession.session_id,
-    refetchUserContext,
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedLabelText]);
 
   return (
     <input
@@ -31,9 +34,11 @@ export const TimerLabel = () => {
       name="Timer Label"
       placeholder="Enter label..."
       aria-label="Enter timer label"
-      defaultValue={currentSession.session_label}
+      value={labelText}
       className={classes.input}
-      onChange={(e) => setLabelText(e.currentTarget.value)}
+      onChange={(e) => {
+        setLabelText(e.currentTarget.value);
+      }}
     />
   );
 };

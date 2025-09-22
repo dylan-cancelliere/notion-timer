@@ -1,7 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { ModalsProvider } from "@mantine/modals";
-import "@src/index.css";
+import "./index.css";
 import App from "@src/App.tsx";
 import "@mantine/core/styles.css";
 import "@mantine/notifications/styles.css";
@@ -13,9 +12,7 @@ createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <MantineProvider>
       <Notifications position="top-right" />
-      <ModalsProvider modalProps={{ centered: true, xOffset: 0 }}>
-        <App />
-      </ModalsProvider>
+      <App />
     </MantineProvider>
   </StrictMode>
 );

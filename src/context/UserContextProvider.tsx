@@ -18,20 +18,22 @@ export const UserContextProvider = ({
   }>();
   const [currentSession, setCurrentSession] = useState<Session>();
   const [loading, setLoading] = useState(false);
+  const [timerIsRunning, setTimerIsRunning] = useState(false);
 
   const fetchUserContext = useCallback(() => {
-    if (!userId) return;
+    if (!userId) return Promise.resolve();
     setLoading(true);
-    getUserContext(userId)
+    return getUserContext(userId)
       .then(({ context }) => {
         setCtx({ ...context });
-        setCurrentSession(
-          context.sessions.length > 0 ? context.sessions[0] : undefined
-        );
+        if (!currentSession)
+          setCurrentSession(
+            context.sessions.length > 0 ? context.sessions[0] : undefined
+          );
       })
       .finally(() => setLoading(false))
       .catch(notify.error);
-  }, [userId]);
+  }, [userId, currentSession]);
 
   useEffect(() => {
     fetchUserContext();
@@ -47,6 +49,8 @@ export const UserContextProvider = ({
               currentSession,
               changeCurrentSession: setCurrentSession,
               refetchUserContext: fetchUserContext,
+              timerIsRunning,
+              setTimerIsRunning,
             }
           : null
       }

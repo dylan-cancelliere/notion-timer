@@ -4,4 +4,5 @@ Notes:
   - change size of widget
   - manage previous entries
   - switch user id(?)
-- auto saving timer
+- paginate sessions list
+- organize sessions by "project"
