@@ -1,10 +1,14 @@
 import { createContext, useContext } from "react";
-import type { Session } from "../../server/src/models";
+import type { Session, User } from "@server/src/models";
 
 export type UserContextType = {
-  //   user: User;
-  //   sessions: Session[];
+  user: User;
+  sessions: Session[];
   currentSession: Session;
+  changeCurrentSession: (s: Session) => void;
+  refetchUserContext: () => Promise<string | void>;
+  timerIsRunning: boolean;
+  setTimerIsRunning: (isRunning: boolean) => void;
 };
 
 export const UserContext = createContext<UserContextType | null>(null);
@@ -12,6 +16,6 @@ export const UserContext = createContext<UserContextType | null>(null);
 // Asserts user is logged in
 export const useLoginContext = () => {
   const data = useContext(UserContext);
-  if (!data?.currentSession) throw new Error("Login context not found");
-  return { currentSession: data.currentSession };
+  if (!data) throw new Error("Login context not found");
+  return { ...data };
 };

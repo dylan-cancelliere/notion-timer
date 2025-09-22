@@ -5,7 +5,13 @@ import express from "express";
 import mysql from "mysql2/promise";
 import { Connector } from "@google-cloud/cloud-sql-connector";
 import { SecretManagerServiceClient } from "@google-cloud/secret-manager";
-import { getLastSession, updateSessionLabel, updateSessionTime } from "./api";
+import {
+  getLastSession,
+  getUserContext,
+  updateSessionLabel,
+  updateSessionTime,
+} from "./api";
+import { Session, User } from "./models";
 
 const INSTANCE_CONNECTION_NAME = "notion-timer:us-central1:notion-timer-db";
 
@@ -33,7 +39,12 @@ const connectWithConnector = async (config: mysql.PoolOptions) => {
 const app = express();
 
 const corsOptions = {
-  origin: ["https://notion-timer-5v3.pages.dev/", "http://localhost:5173"],
+  origin: [
+    "https://notion-timer-5v3.pages.dev",
+    /\.notion-timer-5v3\.pages\.dev/,
+    /\.notion-timer-5v3\.pages\.dev\//,
+    "http://localhost:5173",
+  ],
   optionsSuccessStatus: 200,
 };
 
@@ -98,6 +109,35 @@ app.use(async (req, res, next) => {
   } catch (err) {
     console.error(err);
     return next(err);
+  }
+});
+
+app.get("/user/:userId/context", async (req, res) => {
+  pool = pool || (await createPool());
+  try {
+    const ctx = await getUserContext(req.params.userId, pool);
+
+    if (ctx.length == 0)
+      throw new Error("Couldn't find user with ID: " + req.params.userId);
+
+    // build FE model
+    const userCtx = {
+      user: { user_id: ctx[0].user_id, name: ctx[0].name } as User,
+      sessions: !ctx[0].session_id
+        ? []
+        : (ctx.map((it) => ({
+            session_id: it.session_id,
+            session_length: it.session_length,
+            session_label: it.session_label,
+            last_updated: it.last_updated,
+            created_at: it.created_at,
+          })) as Session[]),
+    };
+
+    res.send({ context: userCtx });
+  } catch (e) {
+    console.log(e);
+    res.send("Error retrieving user context" + e);
   }
 });
 

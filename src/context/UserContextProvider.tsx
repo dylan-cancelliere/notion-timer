@@ -1,8 +1,8 @@
-import { type ReactNode, useState, useEffect } from "react";
-import { UserContext } from "./context";
-import type { Session } from "../../server/src/models";
-import { getLastSession } from "../api";
-import { notify } from "../utils";
+import { type ReactNode, useState, useEffect, useCallback } from "react";
+import { UserContext } from "@src/context/context";
+import type { Session, User } from "@server/src/models";
+import { getUserContext } from "@src/api";
+import { notify } from "@src/utils";
 import { Box, LoadingOverlay } from "@mantine/core";
 
 export const UserContextProvider = ({
@@ -12,23 +12,49 @@ export const UserContextProvider = ({
   children?: ReactNode;
   userId: string | null;
 }) => {
-  const [data, setData] = useState<Session>();
+  const [ctx, setCtx] = useState<{
+    user: User;
+    sessions: Session[];
+  }>();
+  const [currentSession, setCurrentSession] = useState<Session>();
   const [loading, setLoading] = useState(false);
-  useEffect(() => {
-    if (!userId) return;
+  const [timerIsRunning, setTimerIsRunning] = useState(false);
+
+  const fetchUserContext = useCallback(() => {
+    if (!userId) return Promise.resolve();
     setLoading(true);
-    getLastSession(userId)
-      .then(({ session }) => setData(session))
+    return getUserContext(userId)
+      .then(({ context }) => {
+        setCtx({ ...context });
+        if (!currentSession)
+          setCurrentSession(
+            context.sessions.length > 0 ? context.sessions[0] : undefined
+          );
+      })
       .finally(() => setLoading(false))
       .catch(notify.error);
-  }, [userId]);
+  }, [userId, currentSession]);
 
   useEffect(() => {
-    console.log("DATA UPDATE", data);
-  }, [data]);
+    fetchUserContext();
+  }, [fetchUserContext]);
 
   return (
-    <UserContext value={data ? { currentSession: data } : null}>
+    <UserContext
+      value={
+        ctx && currentSession
+          ? {
+              user: ctx.user,
+              sessions: ctx.sessions,
+              currentSession,
+              changeCurrentSession: setCurrentSession,
+              refetchUserContext: fetchUserContext,
+              timerIsRunning,
+              setTimerIsRunning,
+            }
+          : null
+      }
+    >
       <Box pos="relative">
         <LoadingOverlay
           visible={loading}

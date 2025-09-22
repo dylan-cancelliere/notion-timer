@@ -6,11 +6,11 @@ export type User = RowDataPacket & {
 };
 export type IUser = User & RowDataPacket;
 
-export type ISession = Session & RowDataPacket;
+export type ISession = Session & RowDataPacket & { user_id: string };
 export type Session = RowDataPacket & {
-  user_id: string;
   session_id: string;
   session_label: string;
   session_length: number;
-  session_ts: string;
+  last_updated: string;
+  created_at: string;
 };
