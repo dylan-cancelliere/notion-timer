@@ -74,7 +74,10 @@ export const SessionDisplayTable = () => {
             </Menu.Target>
 
             <Menu.Dropdown>
-              <Menu.Item leftSection={<IconLink size={16} />}>
+              <Menu.Item
+                leftSection={<IconLink size={16} />}
+                onClick={() => notify.info("Coming soon!")}
+              >
                 Get embed link
               </Menu.Item>
               <Menu.Item
