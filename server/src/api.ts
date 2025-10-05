@@ -1,5 +1,5 @@
 import { Pool } from "mysql2/promise";
-import { ISession, IUser } from "./models";
+import { IProject, ISession, IUser } from "./models";
 import { v4 as uuidv4 } from "uuid";
 
 export async function createNewSession(userId: string, pool: Pool) {
@@ -52,9 +52,22 @@ export async function updateSessionTime(
 }
 
 export async function getUserContext(userId: string, pool: Pool) {
-  const sql = `select users.user_id, users.name, user_sessions.session_id, user_sessions.session_label, user_sessions.session_length, user_sessions.last_updated, user_sessions.created_at
+  const ctx_sql = `select users.user_id, users.name, user_sessions.session_id, user_sessions.session_label, user_sessions.session_length, user_sessions.last_updated, user_sessions.created_at
     from users left join user_sessions on users.user_id = user_sessions.user_id
     where users.user_id = ? order by user_sessions.last_updated desc`;
-  const [ctx] = await pool.query<(ISession & IUser)[]>(sql, userId);
-  return ctx;
+  const [ctx] = await pool.query<(ISession & IUser)[]>(ctx_sql, userId);
+  const projects = await getAllProjects(userId, pool);
+  return { context: ctx, projects };
+}
+
+export async function getAllProjects(userId: string, pool: Pool) {
+  const sql = `select project_sessions.project_id, project_sessions.session_id, projects.project_name, projects.color from projects
+    left join project_sessions on projects.id = project_sessions.project_id
+    where projects.user_id = ?
+    order by projects.project_name desc`;
+  const [projects] = await pool.query<(IProject & { session_id: string })[]>(
+    sql,
+    userId
+  );
+  return projects;
 }

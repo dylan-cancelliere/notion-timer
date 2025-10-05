@@ -11,7 +11,7 @@ import {
   updateSessionLabel,
   updateSessionTime,
 } from "./api";
-import { Session, User } from "./models";
+import { Project, Session, User } from "./models";
 
 const INSTANCE_CONNECTION_NAME = "notion-timer:us-central1:notion-timer-db";
 
@@ -115,23 +115,39 @@ app.use(async (req, res, next) => {
 app.get("/user/:userId/context", async (req, res) => {
   pool = pool || (await createPool());
   try {
-    const ctx = await getUserContext(req.params.userId, pool);
+    const raw = await getUserContext(req.params.userId, pool);
 
-    if (ctx.length == 0)
+    if (raw.context.length == 0)
       throw new Error("Couldn't find user with ID: " + req.params.userId);
 
     // build FE model
+
+    const projects = new Map<string, Project & { sessions: Session[] }>();
+    raw.projects.forEach((proj) => {
+      const maybeSession = raw.context.find(
+        (it) => it.session_id == proj.session_id
+      );
+      if (!maybeSession)
+        throw Error(
+          "Error finding session with id " +
+            proj.session_id +
+            "for project " +
+            proj.project_id
+        );
+      projects.set(proj.project_id, {
+        ...proj,
+        sessions: projects.has(proj.project_id)
+          ? projects.get(proj.project_id)!.sessions.concat(maybeSession)
+          : [maybeSession],
+      });
+    });
+
     const userCtx = {
-      user: { user_id: ctx[0].user_id, name: ctx[0].name } as User,
-      sessions: !ctx[0].session_id
-        ? []
-        : (ctx.map((it) => ({
-            session_id: it.session_id,
-            session_length: it.session_length,
-            session_label: it.session_label,
-            last_updated: it.last_updated,
-            created_at: it.created_at,
-          })) as Session[]),
+      user: {
+        user_id: raw.context[0].user_id,
+        name: raw.context[0].name,
+      } as User,
+      projects: Array.from(projects),
     };
 
     res.send({ context: userCtx });
