@@ -26,7 +26,17 @@ import {
   type MRT_ColumnDef,
 } from "mantine-react-table";
 
-const columns: MRT_ColumnDef<UserProject>[] = [
+function sessionLengthToDurationTs(sessionLength: number) {
+  const hours = Math.floor(sessionLength / 360000);
+  const minutes = Math.floor((sessionLength / 6000) % 360);
+  const seconds = Math.floor((sessionLength / 100) % 60);
+
+  return `${hours > 0 ? `${hours}h ` : ""}${
+    minutes > 0 ? `${minutes}m ` : ""
+  }${seconds}s`;
+}
+
+const columns: MRT_ColumnDef<UserProject & { total_time: number }>[] = [
   {
     accessorKey: "project_name",
     header: "Project Name",
@@ -35,24 +45,23 @@ const columns: MRT_ColumnDef<UserProject>[] = [
     accessorKey: "color",
     header: "Color",
   },
+  {
+    accessorKey: "total_time",
+    header: "Total Time",
+    Cell: ({ row }) => {
+      return sessionLengthToDurationTs(row.original.total_time);
+    },
+  },
 ];
 
 const SessionRow = ({ session }: { session: Session }) => {
   const { currentSession, changeCurrentSession, timerIsRunning } =
     useLoginContext();
 
-  const hours = Math.floor(session.session_length / 360000);
-  const minutes = Math.floor((session.session_length / 6000) % 360);
-  const seconds = Math.floor((session.session_length / 100) % 60);
-
-  const sessionLengthTs = `${hours > 0 ? `${hours}h ` : ""}${
-    minutes > 0 ? `${minutes}m ` : ""
-  }${seconds}s`;
-
   return (
     <Table.Tr key={session.session_id}>
       <Table.Td>{session.session_label}</Table.Td>
-      <Table.Td>{sessionLengthTs}</Table.Td>
+      <Table.Td>{sessionLengthToDurationTs(session.session_length)}</Table.Td>
       <Table.Td>{new Date(session.last_updated).toLocaleString()}</Table.Td>
       <Table.Td>
         {session.session_id != currentSession.session_id && (
@@ -132,9 +141,17 @@ const SessionRow = ({ session }: { session: Session }) => {
 export const ProjectsDisplayTable = () => {
   const { projects } = useLoginContext();
 
+  const projectsWithTime = projects.map((it) => ({
+    ...it,
+    total_time: it.sessions.reduce(
+      (acc, cur) => (acc += cur.session_length),
+      0
+    ),
+  }));
+
   const table = useMantineReactTable({
     columns,
-    data: projects,
+    data: projectsWithTime,
     renderDetailPanel: ({ row }) => (
       <Table.ScrollContainer minWidth={600}>
         <Table striped highlightOnHover tabularNums>
