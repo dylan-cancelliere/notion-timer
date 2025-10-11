@@ -20,4 +20,5 @@ export type Project = {
   project_name: string;
   color: string;
 };
+export type UserProject = Project & { sessions: Session[] };
 export type IProject = Project & RowDataPacket;

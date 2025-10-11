@@ -11,7 +11,7 @@ import {
   updateSessionLabel,
   updateSessionTime,
 } from "./api";
-import { Project, Session, User } from "./models";
+import { User, UserProject } from "./models";
 
 const INSTANCE_CONNECTION_NAME = "notion-timer:us-central1:notion-timer-db";
 
@@ -122,7 +122,7 @@ app.get("/user/:userId/context", async (req, res) => {
 
     // build FE model
 
-    const projects = new Map<string, Project & { sessions: Session[] }>();
+    const projects = new Map<string, UserProject>();
     raw.projects.forEach((proj) => {
       const maybeSession = raw.context.find(
         (it) => it.session_id == proj.session_id
@@ -147,7 +147,7 @@ app.get("/user/:userId/context", async (req, res) => {
         user_id: raw.context[0].user_id,
         name: raw.context[0].name,
       } as User,
-      projects: Array.from(projects),
+      projects: Array.from(projects.values()),
     };
 
     res.send({ context: userCtx });

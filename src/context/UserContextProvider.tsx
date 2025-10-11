@@ -1,6 +1,6 @@
 import { type ReactNode, useState, useEffect, useCallback } from "react";
 import { UserContext } from "@src/context/context";
-import type { Session, User } from "@server/src/models";
+import type { Project, Session, User } from "@server/src/models";
 import { getUserContext } from "@src/api";
 import { notify } from "@src/utils";
 import { Box, LoadingOverlay } from "@mantine/core";
@@ -14,7 +14,7 @@ export const UserContextProvider = ({
 }) => {
   const [ctx, setCtx] = useState<{
     user: User;
-    sessions: Session[];
+    projects: (Project & { sessions: Session[] })[];
   }>();
   const [currentSession, setCurrentSession] = useState<Session>();
   const [loading, setLoading] = useState(false);
@@ -26,10 +26,12 @@ export const UserContextProvider = ({
     return getUserContext(userId)
       .then(({ context }) => {
         setCtx({ ...context });
-        if (!currentSession)
-          setCurrentSession(
-            context.sessions.length > 0 ? context.sessions[0] : undefined
-          );
+        if (!currentSession) {
+          const maybeSesh = context.projects.find(
+            (it) => it.sessions.length > 0
+          )?.sessions[0];
+          setCurrentSession(maybeSesh);
+        }
       })
       .finally(() => setLoading(false))
       .catch(notify.error);
@@ -45,7 +47,7 @@ export const UserContextProvider = ({
         ctx && currentSession
           ? {
               user: ctx.user,
-              sessions: ctx.sessions,
+              projects: ctx.projects,
               currentSession,
               changeCurrentSession: setCurrentSession,
               refetchUserContext: fetchUserContext,

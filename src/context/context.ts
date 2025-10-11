@@ -1,9 +1,9 @@
 import { createContext, useContext } from "react";
-import type { Session, User } from "@server/src/models";
+import type { Session, User, UserProject } from "@server/src/models";
 
 export type UserContextType = {
   user: User;
-  sessions: Session[];
+  projects: UserProject[];
   currentSession: Session;
   changeCurrentSession: (s: Session) => void;
   refetchUserContext: () => Promise<string | void>;

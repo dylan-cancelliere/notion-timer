@@ -2,14 +2,14 @@ import { ActionIcon, Card, Stack } from "@mantine/core";
 import { modals } from "@mantine/modals";
 import { IconDotsVertical } from "@tabler/icons-react";
 import { useState } from "react";
-import { SessionDisplayTable } from "@src/components/options/SessionDisplayTable";
+import { ProjectsDisplayTable } from "@src/components/options/ProjectsDisplayTable";
 import { useLoginContext } from "@src/context/context";
 import { ShowUserId } from "./ShowUserId";
 
 const OptionsList = () => {
   const options = [
     { key: "showId", component: <ShowUserId /> },
-    { key: "sessionDisplay", component: <SessionDisplayTable /> },
+    { key: "sessionDisplay", component: <ProjectsDisplayTable /> },
   ];
   return (
     <Stack>
@@ -37,7 +37,6 @@ export const OptionsModal = () => {
           .then(() => setLoading(false))
           .then(() =>
             modals.open({
-              title: "Options",
               children: <OptionsList />,
               centered: true,
               size: "xl",

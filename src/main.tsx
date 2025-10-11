@@ -4,6 +4,7 @@ import "./index.css";
 import App from "@src/App.tsx";
 import "@mantine/core/styles.css";
 import "@mantine/notifications/styles.css";
+import "mantine-react-table/styles.css";
 
 import { MantineProvider } from "@mantine/core";
 import { Notifications } from "@mantine/notifications";
