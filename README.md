@@ -11,5 +11,4 @@ EASY todos for next time:
 
 - create new session
 - delete session
-- get embed link button
-  - bonus: including link to specific session
+- DB fix - sessions should just be bound to projects, not also users. IE delete user_sessions table

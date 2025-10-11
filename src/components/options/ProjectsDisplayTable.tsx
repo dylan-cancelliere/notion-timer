@@ -8,6 +8,7 @@ import {
   Stack,
   Table,
   Text,
+  TextInput,
   Title,
   Tooltip,
 } from "@mantine/core";
@@ -28,6 +29,7 @@ import {
   useMantineReactTable,
   type MRT_ColumnDef,
 } from "mantine-react-table";
+import { useState } from "react";
 
 function sessionLengthToDurationTs(sessionLength: number) {
   const hours = Math.floor(sessionLength / 360000);
@@ -37,6 +39,35 @@ function sessionLengthToDurationTs(sessionLength: number) {
   return `${hours > 0 ? `${hours}h ` : ""}${
     minutes > 0 ? `${minutes}m ` : ""
   }${seconds}s`;
+}
+
+function openCreateSessionModal() {
+  const CreateSessionModal = () => {
+    const [name, setName] = useState<string>();
+
+    return (
+      <Stack>
+        <TextInput
+          label="Name"
+          placeholder="Enter name..."
+          onChange={(e) => setName(e.currentTarget.value)}
+        />
+        <Button
+          disabled={!name}
+          onClick={() => {
+            modals.close(id);
+          }}
+        >
+          Submit
+        </Button>
+      </Stack>
+    );
+  };
+
+  const id = modals.open({
+    title: "Create new session",
+    children: <CreateSessionModal />,
+  });
 }
 
 const columns: MRT_ColumnDef<UserProject & { total_time: number }>[] = [
@@ -53,6 +84,31 @@ const columns: MRT_ColumnDef<UserProject & { total_time: number }>[] = [
     header: "Total Time",
     Cell: ({ row }) => {
       return sessionLengthToDurationTs(row.original.total_time);
+    },
+  },
+  {
+    id: "rowActions",
+    header: "Options",
+    columnDefType: "display",
+    Cell: () => {
+      return (
+        <Menu shadow="md" width={200}>
+          <Menu.Target>
+            <ActionIcon aria-label="Project options menu" variant="transparent">
+              <IconDotsVertical />
+            </ActionIcon>
+          </Menu.Target>
+
+          <Menu.Dropdown>
+            <Menu.Item
+              leftSection={<IconCirclePlusFilled size={16} />}
+              onClick={openCreateSessionModal}
+            >
+              New session
+            </Menu.Item>
+          </Menu.Dropdown>
+        </Menu>
+      );
     },
   },
 ];
@@ -171,24 +227,26 @@ export const ProjectsDisplayTable = () => {
     columns,
     data: projectsWithTime,
     renderDetailPanel: ({ row }) => (
-      <Table.ScrollContainer minWidth={600}>
-        <Table striped highlightOnHover tabularNums>
-          <Table.Thead>
-            <Table.Tr>
-              <Table.Th>Session</Table.Th>
-              <Table.Th>Length</Table.Th>
-              <Table.Th>Last used</Table.Th>
-              <Table.Th>Switch</Table.Th>
-              <Table.Th>Options</Table.Th>
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
-            {row.original.sessions.map((it) => (
-              <SessionRow key={it.session_id} session={it} />
-            ))}
-          </Table.Tbody>
-        </Table>
-      </Table.ScrollContainer>
+      <Stack gap={0}>
+        <Table.ScrollContainer minWidth={600}>
+          <Table striped highlightOnHover tabularNums>
+            <Table.Thead>
+              <Table.Tr>
+                <Table.Th>Session</Table.Th>
+                <Table.Th>Length</Table.Th>
+                <Table.Th>Last used</Table.Th>
+                <Table.Th>Switch</Table.Th>
+                <Table.Th>Options</Table.Th>
+              </Table.Tr>
+            </Table.Thead>
+            <Table.Tbody>
+              {row.original.sessions.map((it) => (
+                <SessionRow key={it.session_id} session={it} />
+              ))}
+            </Table.Tbody>
+          </Table>
+        </Table.ScrollContainer>
+      </Stack>
     ),
     initialState: {
       expanded: true,
