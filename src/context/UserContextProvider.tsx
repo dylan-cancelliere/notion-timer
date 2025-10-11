@@ -8,9 +8,11 @@ import { Box, LoadingOverlay } from "@mantine/core";
 export const UserContextProvider = ({
   children,
   userId,
+  sessionSearchParam,
 }: {
   children?: ReactNode;
   userId: string | null;
+  sessionSearchParam: string | null;
 }) => {
   const [ctx, setCtx] = useState<{
     user: User;
@@ -26,7 +28,20 @@ export const UserContextProvider = ({
     return getUserContext(userId)
       .then(({ context }) => {
         setCtx({ ...context });
+        console.log("fetch context called");
         if (!currentSession) {
+          if (sessionSearchParam) {
+            const session = context.projects
+              .find((proj) =>
+                proj.sessions.some(
+                  (sesh) => sesh.session_id == sessionSearchParam
+                )
+              )
+              ?.sessions.find((it) => it.session_id == sessionSearchParam);
+            setCurrentSession(session);
+            return;
+          }
+
           const maybeSesh = context.projects.find(
             (it) => it.sessions.length > 0
           )?.sessions[0];
@@ -35,7 +50,7 @@ export const UserContextProvider = ({
       })
       .finally(() => setLoading(false))
       .catch(notify.error);
-  }, [userId, currentSession]);
+  }, [userId]);
 
   useEffect(() => {
     fetchUserContext();

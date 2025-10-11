@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import { useContext, useEffect, useState } from "react";
 import { TextInput, Modal, Stack, Text, Button } from "@mantine/core";
 import { IconLogin } from "@tabler/icons-react";
@@ -12,9 +11,8 @@ import { ModalsProvider } from "@mantine/modals";
 const LOCAL_STORAGE_KEY = "notion-timer-user-id";
 
 const AuthWrapper = () => {
-  const [userId, setUserId] = useState(
-    new URLSearchParams(location.search).get("userId")
-  );
+  const searchParams = new URLSearchParams(location.search);
+  const [userId, setUserId] = useState(searchParams.get("userId"));
 
   useEffect(() => {
     if (!userId) {
@@ -29,7 +27,10 @@ const AuthWrapper = () => {
   }, [userId]);
 
   return (
-    <UserContextProvider userId={userId}>
+    <UserContextProvider
+      userId={userId}
+      sessionSearchParam={searchParams.get("sessionId")}
+    >
       <ModalsProvider modalProps={{ centered: true, xOffset: 0 }}>
         <App setUserId={setUserId} />
       </ModalsProvider>

@@ -5,8 +5,6 @@ import { notify } from "@src/utils";
 import { useDebouncedValue } from "@mantine/hooks";
 import { useLoginContext } from "@src/context/context";
 
-//
-
 export const TimerLabel = () => {
   const { currentSession, refetchUserContext } = useLoginContext();
   const [labelText, setLabelText] = useState(currentSession.session_label);
@@ -25,7 +23,6 @@ export const TimerLabel = () => {
     updateSessionLabel(currentSession.session_id, debouncedLabelText)
       .then(refetchUserContext)
       .then(() => notify.success("Updated label"));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedLabelText]);
 
   return (

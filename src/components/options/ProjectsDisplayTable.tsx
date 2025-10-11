@@ -1,6 +1,8 @@
 import {
   ActionIcon,
+  Box,
   Button,
+  CopyButton,
   Group,
   Menu,
   Stack,
@@ -14,6 +16,7 @@ import type { Session, UserProject } from "@server/src/models";
 import { useLoginContext } from "@src/context/context";
 import { notify } from "@src/utils";
 import {
+  IconCheck,
   IconCirclePlusFilled,
   IconDotsVertical,
   IconLink,
@@ -55,8 +58,12 @@ const columns: MRT_ColumnDef<UserProject & { total_time: number }>[] = [
 ];
 
 const SessionRow = ({ session }: { session: Session }) => {
-  const { currentSession, changeCurrentSession, timerIsRunning } =
-    useLoginContext();
+  const {
+    currentSession,
+    changeCurrentSession,
+    timerIsRunning,
+    user: { user_id },
+  } = useLoginContext();
 
   return (
     <Table.Tr key={session.session_id}>
@@ -102,12 +109,23 @@ const SessionRow = ({ session }: { session: Session }) => {
           </Menu.Target>
 
           <Menu.Dropdown>
-            <Menu.Item
-              leftSection={<IconLink size={16} />}
-              onClick={() => notify.info("Coming soon!")}
+            <CopyButton
+              value={`https://notion-timer-5v3.pages.dev?userId=${user_id}&sessionId=${session.session_id}`}
             >
-              Get embed link
-            </Menu.Item>
+              {({ copied, copy }) => (
+                <Menu.Item
+                  leftSection={
+                    copied ? <IconCheck size={16} /> : <IconLink size={16} />
+                  }
+                  onClick={() => {
+                    copy();
+                    notify.success("Copied to clipboard");
+                  }}
+                >
+                  {copied ? "Copied" : "Get embed link"}
+                </Menu.Item>
+              )}
+            </CopyButton>
             <Menu.Item
               color="red"
               leftSection={<IconTrash size={16} />}
@@ -208,7 +226,9 @@ export const ProjectsDisplayTable = () => {
           </ActionIcon>
         </Tooltip>
       </Group>
-      <MRT_Table table={table} />
+      <Box style={{ overflow: "auto" }}>
+        <MRT_Table table={table} />
+      </Box>
     </Stack>
   );
 };
