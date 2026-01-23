@@ -6,6 +6,8 @@ import mysql from "mysql2/promise";
 import { Connector } from "@google-cloud/cloud-sql-connector";
 import { SecretManagerServiceClient } from "@google-cloud/secret-manager";
 import {
+  createNewProject,
+  createNewSession,
   getAllProjects,
   getLastSession,
   updateSessionLabel,
@@ -137,14 +139,15 @@ app.get("/user/:userId/context", async (req, res) => {
       user: {
         user_id: raw[0].user_id,
         name: raw[0].name,
+        default_color: raw[0].default_color,
       } as User,
       projects: Array.from(sessionMap.values()).map((sessions) => {
         const sesh = sessions[0];
         return {
-          projectId: sesh.project_id,
-          projectName: sesh.project_name,
+          project_id: sesh.project_id,
+          project_name: sesh.project_name,
           color: sesh.color,
-          sessions,
+          sessions: sessions.filter((s) => s.session_id != null),
         };
       }),
     };
@@ -196,6 +199,35 @@ app.post("/session/:sessionId/time", async (req, res) => {
   } catch (e) {
     console.log(e);
     res.send("Error updating session time" + e);
+  }
+});
+
+app.post("/project/new", async (req, res) => {
+  pool = pool || (await createPool());
+  try {
+    const maybeUserId = req.body?.userId;
+    if (!maybeUserId) {
+      res.status(422).send("Invalid request body, userId not found");
+    }
+    await createNewProject(maybeUserId, pool);
+    res.status(200).send();
+  } catch (e) {
+    console.log(e);
+    res.send("Error creating project" + e);
+  }
+});
+app.post("/project/:projectId/newsession", async (req, res) => {
+  pool = pool || (await createPool());
+  try {
+    const maybeUserId = req.body?.userId;
+    if (!maybeUserId) {
+      res.status(422).send("Invalid request body, userId not found");
+    }
+    await createNewSession(maybeUserId, req.params.projectId, pool);
+    res.status(200).send();
+  } catch (e) {
+    console.log(e);
+    res.send("Error creating project" + e);
   }
 });
 

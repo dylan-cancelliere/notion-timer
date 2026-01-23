@@ -75,9 +75,10 @@ export async function updateSessionTime(
 }
 
 export async function getAllProjects(userId: string, pool: Pool) {
-  const sql = `SELECT project_sessions.*, users.name, projects.project_name, projects.color FROM users
-              LEFT JOIN project_sessions ON users.user_id = project_sessions.user_id
-              JOIN projects on projects.project_id = project_sessions.project_id
+  const sql = `SELECT projects.*, users.name, users.default_color, project_sessions.session_id, project_sessions.session_label, project_sessions.session_length, project_sessions.last_updated, project_sessions.created_at
+              FROM users
+              join projects on projects.user_id = users.user_id
+              LEFT JOIN project_sessions ON projects.project_id = project_sessions.project_id
               WHERE users.user_id = ?
               ORDER BY project_sessions.last_updated desc`;
   const [projects] = await pool.query<(IProject & ISession & IUser)[]>(

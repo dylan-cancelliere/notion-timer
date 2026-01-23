@@ -1,6 +1,6 @@
-import { ActionIcon, Card, Stack } from "@mantine/core";
+import { ActionIcon, Card, Stack, Title } from "@mantine/core";
 import { modals } from "@mantine/modals";
-import { IconDotsVertical } from "@tabler/icons-react";
+import { IconSettings } from "@tabler/icons-react";
 import { useState } from "react";
 import { ProjectsDisplayTable } from "@src/components/options/ProjectsDisplayTable";
 import { useLoginContext } from "@src/context/context";
@@ -37,6 +37,7 @@ export const OptionsModal = () => {
           .then(() => setLoading(false))
           .then(() =>
             modals.open({
+              title: <Title order={2}>Settings</Title>,
               children: <OptionsList />,
               centered: true,
               size: "xl",
@@ -44,7 +45,7 @@ export const OptionsModal = () => {
           );
       }}
     >
-      <IconDotsVertical />
+      <IconSettings />
     </ActionIcon>
   );
 };

@@ -36,3 +36,23 @@ export async function getUserContext(userId: string) {
     }>;
   });
 }
+
+export async function postNewProject(userId: string) {
+  return fetch(`${API_BASE}/project/new`, {
+    method: "post",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ userId }),
+  });
+}
+
+export async function postNewSession(userId: string, projectId: string) {
+  return fetch(`${API_BASE}/project/${projectId}/newsession`, {
+    method: "post",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ userId }),
+  });
+}

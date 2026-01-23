@@ -24,3 +24,13 @@ export const notify = {
       message,
     }),
 };
+
+export function sessionLengthToDurationTs(sessionLength: number) {
+  const hours = Math.floor(sessionLength / 360000);
+  const minutes = Math.floor((sessionLength / 6000) % 360);
+  const seconds = Math.floor((sessionLength / 100) % 60);
+
+  return `${hours > 0 ? `${hours}h ` : ""}${
+    minutes > 0 ? `${minutes}m ` : ""
+  }${seconds}s`;
+}

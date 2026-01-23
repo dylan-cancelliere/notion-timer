@@ -1,4 +1,5 @@
 import {
+  Accordion,
   ActionIcon,
   Box,
   Button,
@@ -8,110 +9,23 @@ import {
   Stack,
   Table,
   Text,
-  TextInput,
   Title,
   Tooltip,
 } from "@mantine/core";
 import { modals } from "@mantine/modals";
-import type { Session, UserProject } from "@server/src/models";
+import type { Session } from "@server/src/models";
 import { useLoginContext } from "@src/context/context";
-import { notify } from "@src/utils";
+import { notify, sessionLengthToDurationTs } from "@src/utils";
 import {
   IconCheck,
   IconCirclePlusFilled,
   IconDotsVertical,
+  IconEdit,
   IconLink,
   IconSwitch2,
   IconTrash,
 } from "@tabler/icons-react";
-import {
-  MRT_Table,
-  useMantineReactTable,
-  type MRT_ColumnDef,
-} from "mantine-react-table";
-import { useState } from "react";
-
-function sessionLengthToDurationTs(sessionLength: number) {
-  const hours = Math.floor(sessionLength / 360000);
-  const minutes = Math.floor((sessionLength / 6000) % 360);
-  const seconds = Math.floor((sessionLength / 100) % 60);
-
-  return `${hours > 0 ? `${hours}h ` : ""}${
-    minutes > 0 ? `${minutes}m ` : ""
-  }${seconds}s`;
-}
-
-function openCreateSessionModal() {
-  const CreateSessionModal = () => {
-    const [name, setName] = useState<string>();
-
-    return (
-      <Stack>
-        <TextInput
-          label="Name"
-          placeholder="Enter name..."
-          onChange={(e) => setName(e.currentTarget.value)}
-        />
-        <Button
-          disabled={!name}
-          onClick={() => {
-            modals.close(id);
-          }}
-        >
-          Submit
-        </Button>
-      </Stack>
-    );
-  };
-
-  const id = modals.open({
-    title: "Create new session",
-    children: <CreateSessionModal />,
-  });
-}
-
-const columns: MRT_ColumnDef<UserProject & { total_time: number }>[] = [
-  {
-    accessorKey: "project_name",
-    header: "Project Name",
-  },
-  {
-    accessorKey: "color",
-    header: "Color",
-  },
-  {
-    accessorKey: "total_time",
-    header: "Total Time",
-    Cell: ({ row }) => {
-      return sessionLengthToDurationTs(row.original.total_time);
-    },
-  },
-  {
-    id: "rowActions",
-    header: "Options",
-    columnDefType: "display",
-    Cell: () => {
-      return (
-        <Menu shadow="md" width={200}>
-          <Menu.Target>
-            <ActionIcon aria-label="Project options menu" variant="transparent">
-              <IconDotsVertical />
-            </ActionIcon>
-          </Menu.Target>
-
-          <Menu.Dropdown>
-            <Menu.Item
-              leftSection={<IconCirclePlusFilled size={16} />}
-              onClick={openCreateSessionModal}
-            >
-              New session
-            </Menu.Item>
-          </Menu.Dropdown>
-        </Menu>
-      );
-    },
-  },
-];
+import { postNewProject, postNewSession } from "@src/api";
 
 const SessionRow = ({ session }: { session: Session }) => {
   const {
@@ -212,7 +126,11 @@ const SessionRow = ({ session }: { session: Session }) => {
 };
 
 export const ProjectsDisplayTable = () => {
-  const { projects } = useLoginContext();
+  const {
+    projects,
+    refetchUserContext,
+    user: { user_id },
+  } = useLoginContext();
 
   const projectsWithTime = projects.map((it) => ({
     ...it,
@@ -222,69 +140,88 @@ export const ProjectsDisplayTable = () => {
     ),
   }));
 
-  const table = useMantineReactTable({
-    columns,
-    data: projectsWithTime,
-    renderDetailPanel: ({ row }) => (
-      <Stack gap={0}>
-        <Table.ScrollContainer minWidth={600}>
-          <Table striped highlightOnHover tabularNums>
-            <Table.Thead>
-              <Table.Tr>
-                <Table.Th>Session</Table.Th>
-                <Table.Th>Length</Table.Th>
-                <Table.Th>Last used</Table.Th>
-                <Table.Th>Switch</Table.Th>
-                <Table.Th>Options</Table.Th>
-              </Table.Tr>
-            </Table.Thead>
-            <Table.Tbody>
-              {row.original.sessions.map((it) => (
-                <SessionRow key={it.session_id} session={it} />
-              ))}
-            </Table.Tbody>
-          </Table>
-        </Table.ScrollContainer>
-      </Stack>
-    ),
-    initialState: {
-      expanded: true,
-    },
-    mantineTableProps: {
-      striped: true,
-    },
-    displayColumnDefOptions: {
-      "mrt-row-expand": {
-        mantineTableHeadCellProps: {
-          display: "none",
-        },
-        mantineTableBodyCellProps: {
-          display: "none",
-        },
-      },
-    },
-    mantineDetailPanelProps: {
-      style: { padding: 0 },
-    },
-
-    enableColumnActions: false,
-    enableColumnFilters: false,
-    enablePagination: false,
-    enableSorting: false,
-  });
-
   return (
     <Stack>
       <Group>
         <Title order={3}>Projects</Title>
         <Tooltip label="Create project">
-          <ActionIcon aria-label="Create project" variant="subtle">
+          <ActionIcon
+            aria-label="Create project"
+            variant="subtle"
+            onClick={() =>
+              void postNewProject(user_id).then(refetchUserContext)
+            }
+          >
             <IconCirclePlusFilled />
           </ActionIcon>
         </Tooltip>
       </Group>
       <Box style={{ overflow: "auto" }}>
-        <MRT_Table table={table} />
+        <Accordion variant="separated" defaultValue="0">
+          {projectsWithTime.map((proj, idx) => {
+            return (
+              <Accordion.Item value={idx.toString()} key={proj.project_id}>
+                <Accordion.Control aria-label={proj.project_name}>
+                  <Group>
+                    {proj.project_name}
+                    <Group gap={0}>
+                      <ActionIcon
+                        variant="subtle"
+                        onClick={(e) => {
+                          e?.stopPropagation();
+                        }}
+                      >
+                        <IconEdit size={16} />
+                      </ActionIcon>
+                      <ActionIcon variant="subtle" color="red">
+                        <IconTrash size={16} />
+                      </ActionIcon>
+                    </Group>
+                  </Group>
+                </Accordion.Control>
+                <Accordion.Panel>
+                  <Stack>
+                    <Table.ScrollContainer minWidth={600}>
+                      <Table striped highlightOnHover tabularNums>
+                        <Table.Thead>
+                          <Table.Tr>
+                            <Table.Th>Session</Table.Th>
+                            <Table.Th>Length</Table.Th>
+                            <Table.Th>Last updated</Table.Th>
+                            <Table.Th>Switch</Table.Th>
+                            <Table.Th>Options</Table.Th>
+                          </Table.Tr>
+                        </Table.Thead>
+                        <Table.Tbody>
+                          {proj.sessions.map((it) => (
+                            <SessionRow key={it.session_id} session={it} />
+                          ))}
+                          <Table.Tr key="new">
+                            <Table.Td colSpan={5}>
+                              <Group justify="center">
+                                <ActionIcon
+                                  variant="subtle"
+                                  onClick={() =>
+                                    void postNewSession(
+                                      user_id,
+                                      proj.project_id,
+                                    ).then(refetchUserContext)
+                                  }
+                                >
+                                  <IconCirclePlusFilled />
+                                </ActionIcon>
+                              </Group>
+                            </Table.Td>
+                          </Table.Tr>
+                        </Table.Tbody>
+                      </Table>
+                    </Table.ScrollContainer>
+                  </Stack>
+                </Accordion.Panel>
+              </Accordion.Item>
+            );
+          })}
+        </Accordion>
       </Box>
     </Stack>
   );
