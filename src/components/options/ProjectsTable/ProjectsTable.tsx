@@ -2,130 +2,21 @@ import {
   Accordion,
   ActionIcon,
   Box,
-  Button,
-  CopyButton,
   Group,
-  Menu,
   Stack,
   Table,
   Text,
   Title,
   Tooltip,
 } from "@mantine/core";
-import { modals } from "@mantine/modals";
-import type { Session } from "@server/src/models";
 import { useLoginContext } from "@src/context/context";
-import { notify, sessionLengthToDurationTs } from "@src/utils";
-import {
-  IconCheck,
-  IconCirclePlusFilled,
-  IconDotsVertical,
-  IconEdit,
-  IconLink,
-  IconSwitch2,
-  IconTrash,
-} from "@tabler/icons-react";
-import { postNewProject, postNewSession } from "@src/api";
+import { IconCirclePlusFilled, IconEdit, IconTrash } from "@tabler/icons-react";
+import { deleteProject, postNewProject, postNewSession } from "@src/api";
+import { SessionRow } from "./SessionRow";
+import { openEditProjectNameModal } from "./modals";
+import { modals } from "@mantine/modals";
 
-const SessionRow = ({ session }: { session: Session }) => {
-  const {
-    currentSession,
-    changeCurrentSession,
-    timerIsRunning,
-    user: { user_id },
-  } = useLoginContext();
-
-  return (
-    <Table.Tr key={session.session_id}>
-      <Table.Td>{session.session_label}</Table.Td>
-      <Table.Td>{sessionLengthToDurationTs(session.session_length)}</Table.Td>
-      <Table.Td>{new Date(session.last_updated).toLocaleString()}</Table.Td>
-      <Table.Td>
-        {session.session_id != currentSession.session_id && (
-          <ActionIcon
-            variant="transparent"
-            mx="auto"
-            onClick={() => {
-              if (timerIsRunning) {
-                modals.open({
-                  withCloseButton: false,
-                  children: (
-                    <Stack>
-                      <Text>
-                        Your timer is currently running! Please pause it to log
-                        your time before changing to a new session.
-                      </Text>
-                      <Button onClick={modals.closeAll}>Ok</Button>
-                    </Stack>
-                  ),
-                });
-                return;
-              }
-              changeCurrentSession(session);
-              modals.closeAll();
-            }}
-          >
-            <IconSwitch2 />
-          </ActionIcon>
-        )}
-      </Table.Td>
-      <Table.Td>
-        <Menu shadow="md" width={200}>
-          <Menu.Target>
-            <ActionIcon variant="transparent" aria-label="Show options">
-              <IconDotsVertical />
-            </ActionIcon>
-          </Menu.Target>
-
-          <Menu.Dropdown>
-            <CopyButton
-              value={`https://notion-timer-5v3.pages.dev?userId=${user_id}&sessionId=${session.session_id}`}
-            >
-              {({ copied, copy }) => (
-                <Menu.Item
-                  leftSection={
-                    copied ? <IconCheck size={16} /> : <IconLink size={16} />
-                  }
-                  onClick={() => {
-                    copy();
-                    notify.success("Copied to clipboard");
-                  }}
-                >
-                  {copied ? "Copied" : "Get embed link"}
-                </Menu.Item>
-              )}
-            </CopyButton>
-            <Menu.Item
-              color="red"
-              leftSection={<IconTrash size={16} />}
-              onClick={() =>
-                modals.openConfirmModal({
-                  title: "Delete session",
-                  children: (
-                    <Text>
-                      Are you sure you want to delete session "
-                      <strong>{session.session_label}</strong>"?
-                    </Text>
-                  ),
-                  labels: { confirm: "Delete", cancel: "Cancel" },
-                  onConfirm: () => {
-                    notify.info("Todo!");
-                    modals.closeAll();
-                  },
-                  confirmProps: { color: "red", leftSection: <IconTrash /> },
-                })
-              }
-            >
-              Delete
-            </Menu.Item>
-          </Menu.Dropdown>
-        </Menu>
-      </Table.Td>
-    </Table.Tr>
-  );
-};
-
-export const ProjectsDisplayTable = () => {
+export const ProjectsTable = () => {
   const {
     projects,
     refetchUserContext,
@@ -169,11 +60,33 @@ export const ProjectsDisplayTable = () => {
                         variant="subtle"
                         onClick={(e) => {
                           e?.stopPropagation();
+                          openEditProjectNameModal(proj.project_id, user_id);
                         }}
                       >
                         <IconEdit size={16} />
                       </ActionIcon>
-                      <ActionIcon variant="subtle" color="red">
+                      <ActionIcon
+                        variant="subtle"
+                        color="red"
+                        onClick={(e) => {
+                          e?.stopPropagation();
+                          modals.openConfirmModal({
+                            title: "Delete project",
+                            children: (
+                              <Text size="sm">
+                                Are you sure you would like to delete this
+                                project? All sessions will be destroyed and this
+                                action cannot be undone
+                              </Text>
+                            ),
+                            labels: { confirm: "Confirm", cancel: "Cancel" },
+                            onConfirm: () =>
+                              void deleteProject(user_id, proj.project_id).then(
+                                refetchUserContext,
+                              ),
+                          });
+                        }}
+                      >
                         <IconTrash size={16} />
                       </ActionIcon>
                     </Group>

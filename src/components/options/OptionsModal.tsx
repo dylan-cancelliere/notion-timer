@@ -2,13 +2,13 @@ import { ActionIcon, Card, Stack, Title } from "@mantine/core";
 import { modals } from "@mantine/modals";
 import { IconSettings } from "@tabler/icons-react";
 import { useState } from "react";
-import { ProjectsDisplayTable } from "@src/components/options/ProjectsDisplayTable";
+import { ProjectsTable } from "@src/components/options/ProjectsTable/ProjectsTable";
 import { useLoginContext } from "@src/context/context";
 import { ShowUserId } from "./ShowUserId";
 
 const OptionsList = () => {
   const options = [
-    { key: "sessionDisplay", component: <ProjectsDisplayTable /> },
+    { key: "sessionDisplay", component: <ProjectsTable /> },
     { key: "showId", component: <ShowUserId /> },
   ];
   return (

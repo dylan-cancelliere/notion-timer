@@ -95,3 +95,24 @@ export async function getUser(userId: string, pool: Pool) {
   if (user.length == 0) return null;
   return user[0];
 }
+
+export async function updateProjectName(
+  userId: string,
+  projectId: string,
+  name: string,
+  pool: Pool,
+) {
+  const sql = `UPDATE projects SET project_name = ? WHERE project_id = ? and user_id = ?;`;
+  await pool.query(sql, [name, projectId, userId]);
+}
+
+export async function deleteProject(
+  userId: string,
+  projectId: string,
+  pool: Pool,
+) {
+  const sql = `delete from projects WHERE project_id = ? and user_id = ?;`;
+  await pool.query(sql, [projectId, userId]);
+  const sql2 = `delete from project_sessions where project_id = ? and user_id = ?;`;
+  await pool.query(sql2, [projectId, userId]);
+}

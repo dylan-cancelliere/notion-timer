@@ -56,3 +56,27 @@ export async function postNewSession(userId: string, projectId: string) {
     body: JSON.stringify({ userId }),
   });
 }
+
+export async function updateProjectName(
+  userId: string,
+  projectId: string,
+  name: string,
+) {
+  return fetch(`${API_BASE}/project/${projectId}/name`, {
+    method: "post",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ userId, name }),
+  });
+}
+
+export async function deleteProject(userId: string, projectId: string) {
+  return fetch(`${API_BASE}/project/${projectId}/delete`, {
+    method: "post",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ userId }),
+  });
+}

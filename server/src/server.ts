@@ -8,8 +8,10 @@ import { SecretManagerServiceClient } from "@google-cloud/secret-manager";
 import {
   createNewProject,
   createNewSession,
+  deleteProject,
   getAllProjects,
   getLastSession,
+  updateProjectName,
   updateSessionLabel,
   updateSessionTime,
 } from "./api";
@@ -193,6 +195,7 @@ app.post("/session/:sessionId/time", async (req, res) => {
     const maybeTime = parseInt(req.body?.time);
     if (!maybeTime) {
       res.status(422).send("Invalid request body");
+      return;
     }
     await updateSessionTime(req.params.sessionId, maybeTime, pool);
     res.status(200).send();
@@ -208,6 +211,7 @@ app.post("/project/new", async (req, res) => {
     const maybeUserId = req.body?.userId;
     if (!maybeUserId) {
       res.status(422).send("Invalid request body, userId not found");
+      return;
     }
     await createNewProject(maybeUserId, pool);
     res.status(200).send();
@@ -216,18 +220,58 @@ app.post("/project/new", async (req, res) => {
     res.send("Error creating project" + e);
   }
 });
+
 app.post("/project/:projectId/newsession", async (req, res) => {
   pool = pool || (await createPool());
   try {
     const maybeUserId = req.body?.userId;
     if (!maybeUserId) {
       res.status(422).send("Invalid request body, userId not found");
+      return;
     }
     await createNewSession(maybeUserId, req.params.projectId, pool);
     res.status(200).send();
   } catch (e) {
     console.log(e);
-    res.send("Error creating project" + e);
+    res.send("Error creating session" + e);
+  }
+});
+
+app.post("/project/:projectId/name", async (req, res) => {
+  pool = pool || (await createPool());
+  try {
+    const maybeUserId = req.body?.userId;
+    const maybeName = req.body?.name;
+    console.log("BODY", req.body);
+    if (!maybeUserId) {
+      res.status(422).send("Invalid request body, userId not found");
+      return;
+    }
+    if (!maybeName) {
+      res.status(422).send("Invalid request body, name not found");
+      return;
+    }
+    await updateProjectName(maybeUserId, req.params.projectId, maybeName, pool);
+    res.status(200).send();
+  } catch (e) {
+    console.log(e);
+    res.send("Error updating project name" + e);
+  }
+});
+
+app.post("/project/:projectId/delete", async (req, res) => {
+  pool = pool || (await createPool());
+  try {
+    const maybeUserId = req.body?.userId;
+    if (!maybeUserId) {
+      res.status(422).send("Invalid request body, userId not found");
+      return;
+    }
+    await deleteProject(maybeUserId, req.params.projectId, pool);
+    res.status(200).send();
+  } catch (e) {
+    console.log(e);
+    res.send("Error updating project name" + e);
   }
 });
 
