@@ -2,32 +2,55 @@ import { Pool } from "mysql2/promise";
 import { IProject, ISession, IUser } from "./models";
 import { v4 as uuidv4 } from "uuid";
 
-export async function createNewSession(userId: string, pool: Pool) {
+export async function createNewSession(
+  userId: string,
+  projectId: string,
+  pool: Pool,
+) {
   const sessionId = uuidv4();
   await pool.query(
-    `INSERT INTO \`user_sessions\` (user_id, session_id) VALUES (?, ?)`,
-    [userId, sessionId]
+    `INSERT INTO \`project_sessions\` (user_id, project_id, session_id) VALUES (?, ?, ?)`,
+    [userId, projectId, sessionId],
   );
   const [session] = await pool.query<ISession[]>(
-    `select * from \`user_sessions\` where session_id = ?`,
-    sessionId
+    `select * from \`project_sessions\` where session_id = ?`,
+    sessionId,
   );
   if (session.length == 0) throw new Error("Error creating session");
   return session[0];
 }
 
+export async function createNewProject(userId: string, pool: Pool) {
+  const projectId = uuidv4();
+  const sql = `INSERT INTO projects (user_id, project_id) VALUES (?, ?);`;
+
+  await pool.query(sql, [userId, projectId]);
+  const [project] = await pool.query<IProject[]>(
+    `select * from projects where project_id = ?`,
+    projectId,
+  );
+
+  if (project.length == 0) throw new Error("Error creating project");
+  return project[0];
+}
+
 export async function getLastSession(userId: string, pool: Pool) {
-  const sql = `select * from \`user_sessions\` where user_id = ? order by last_updated desc limit 1`;
+  const sql = `select * from \`project_sessions\` where user_id = ? order by last_updated desc limit 1`;
   const [session] = await pool.query<ISession[]>(sql, userId);
 
   if (session.length == 0) {
-    return await createNewSession(userId, pool);
+    const projects = await getAllProjects(userId, pool);
+    if (projects.length == 0) {
+      const newProj = await createNewProject(userId, pool);
+      return await createNewSession(userId, newProj.project_id, pool);
+    }
+    return await createNewSession(userId, projects[0].project_id, pool);
   }
   return session[0];
 }
 
 export async function getAllSessions(userId: string, pool: Pool) {
-  const sql = `select * from \`user_sessions\` where user_id = ? order by last_updated`;
+  const sql = `select * from \`project_sessions\` where user_id = ? order by last_updated`;
   const [sessions] = await pool.query<ISession[]>(sql, userId);
 
   return sessions;
@@ -36,38 +59,38 @@ export async function getAllSessions(userId: string, pool: Pool) {
 export async function updateSessionLabel(
   sessionId: string,
   label: string,
-  pool: Pool
+  pool: Pool,
 ) {
-  const sql = `UPDATE \`user_sessions\` SET last_updated = now(), session_label = ? WHERE session_id = ?;`;
+  const sql = `UPDATE \`project_sessions\` SET last_updated = now(), session_label = ? WHERE session_id = ?;`;
   await pool.query(sql, [label, sessionId]);
 }
 
 export async function updateSessionTime(
   sessionId: string,
   time: number,
-  pool: Pool
+  pool: Pool,
 ) {
-  const sql = `UPDATE \`user_sessions\` SET last_updated = now(), session_length = ? WHERE session_id = ?;`;
+  const sql = `UPDATE \`project_sessions\` SET last_updated = now(), session_length = ? WHERE session_id = ?;`;
   await pool.query(sql, [time, sessionId]);
 }
 
-export async function getUserContext(userId: string, pool: Pool) {
-  const ctx_sql = `select users.user_id, users.name, user_sessions.session_id, user_sessions.session_label, user_sessions.session_length, user_sessions.last_updated, user_sessions.created_at
-    from users left join user_sessions on users.user_id = user_sessions.user_id
-    where users.user_id = ? order by user_sessions.last_updated desc`;
-  const [ctx] = await pool.query<(ISession & IUser)[]>(ctx_sql, userId);
-  const projects = await getAllProjects(userId, pool);
-  return { context: ctx, projects };
-}
-
 export async function getAllProjects(userId: string, pool: Pool) {
-  const sql = `select project_sessions.project_id, project_sessions.session_id, projects.project_name, projects.color from projects
-    left join project_sessions on projects.id = project_sessions.project_id
-    where projects.user_id = ?
-    order by projects.project_name desc`;
-  const [projects] = await pool.query<(IProject & { session_id: string })[]>(
+  const sql = `SELECT project_sessions.*, users.name, projects.project_name, projects.color FROM users
+              LEFT JOIN project_sessions ON users.user_id = project_sessions.user_id
+              JOIN projects on projects.project_id = project_sessions.project_id
+              WHERE users.user_id = ?
+              ORDER BY project_sessions.last_updated desc`;
+  const [projects] = await pool.query<(IProject & ISession & IUser)[]>(
     sql,
-    userId
+    userId,
   );
   return projects;
+}
+
+export async function getUser(userId: string, pool: Pool) {
+  const sql = `select * from users where user_id = ?`;
+  const [user] = await pool.query<IUser[]>(sql, userId);
+
+  if (user.length == 0) return null;
+  return user[0];
 }

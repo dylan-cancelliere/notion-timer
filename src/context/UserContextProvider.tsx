@@ -28,14 +28,13 @@ export const UserContextProvider = ({
     return getUserContext(userId)
       .then(({ context }) => {
         setCtx({ ...context });
-        console.log("fetch context called");
         if (!currentSession) {
           if (sessionSearchParam) {
             const session = context.projects
               .find((proj) =>
                 proj.sessions.some(
-                  (sesh) => sesh.session_id == sessionSearchParam
-                )
+                  (sesh) => sesh.session_id == sessionSearchParam,
+                ),
               )
               ?.sessions.find((it) => it.session_id == sessionSearchParam);
             setCurrentSession(session);
@@ -43,7 +42,7 @@ export const UserContextProvider = ({
           }
 
           const maybeSesh = context.projects.find(
-            (it) => it.sessions.length > 0
+            (it) => it.sessions.length > 0,
           )?.sessions[0];
           setCurrentSession(maybeSesh);
         }

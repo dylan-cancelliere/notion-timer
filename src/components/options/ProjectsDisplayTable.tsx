@@ -132,7 +132,6 @@ const SessionRow = ({ session }: { session: Session }) => {
             variant="transparent"
             mx="auto"
             onClick={() => {
-              console.log("timer is running", timerIsRunning);
               if (timerIsRunning) {
                 modals.open({
                   withCloseButton: false,
@@ -219,7 +218,7 @@ export const ProjectsDisplayTable = () => {
     ...it,
     total_time: it.sessions.reduce(
       (acc, cur) => (acc += cur.session_length),
-      0
+      0,
     ),
   }));
 

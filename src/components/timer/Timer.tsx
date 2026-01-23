@@ -30,7 +30,7 @@ export const Timer = () => {
     if (timerIsRunning) {
       intervalId = setInterval(
         () => setTime(Math.floor(Date.now() - compareDate) / 10),
-        100
+        100,
       );
     }
     return () => clearInterval(intervalId);
@@ -42,8 +42,8 @@ export const Timer = () => {
       if (timerIsRunning)
         updateSessionTime(
           currentSession.session_id,
-          Math.floor(calcTime.current)
-        ).then(() => console.log("saved"));
+          Math.floor(calcTime.current),
+        );
     }, 60000);
 
     return () => {
@@ -89,7 +89,7 @@ export const Timer = () => {
               setTime(0);
               updateSessionTime(
                 currentSession.session_id,
-                Math.floor(calcTime.current)
+                Math.floor(calcTime.current),
               );
             } else {
               // on play

@@ -6,12 +6,12 @@ import mysql from "mysql2/promise";
 import { Connector } from "@google-cloud/cloud-sql-connector";
 import { SecretManagerServiceClient } from "@google-cloud/secret-manager";
 import {
+  getAllProjects,
   getLastSession,
-  getUserContext,
   updateSessionLabel,
   updateSessionTime,
 } from "./api";
-import { User, UserProject } from "./models";
+import { Project, Session, User } from "./models";
 
 const INSTANCE_CONNECTION_NAME = "notion-timer:us-central1:notion-timer-db";
 
@@ -86,7 +86,7 @@ const createPool = async () => {
       process.env.DB_PASS = secrets?.toString();
     } catch (e) {
       throw new Error(
-        `Unable to parse secret from Secret Manager. Make sure that the secret is JSON formatted: \n ${e} `
+        `Unable to parse secret from Secret Manager. Make sure that the secret is JSON formatted: \n ${e} `,
       );
     }
   }
@@ -115,39 +115,38 @@ app.use(async (req, res, next) => {
 app.get("/user/:userId/context", async (req, res) => {
   pool = pool || (await createPool());
   try {
-    const raw = await getUserContext(req.params.userId, pool);
+    const userId = req.params.userId;
 
-    if (raw.context.length == 0)
+    // ensures user has at least one project & session
+    await getLastSession(userId, pool);
+
+    const raw = await getAllProjects(userId, pool);
+
+    if (raw.length == 0)
       throw new Error("Couldn't find user with ID: " + req.params.userId);
 
     // build FE model
 
-    const projects = new Map<string, UserProject>();
-    raw.projects.forEach((proj) => {
-      const maybeSession = raw.context.find(
-        (it) => it.session_id == proj.session_id
-      );
-      if (!maybeSession)
-        throw Error(
-          "Error finding session with id " +
-            proj.session_id +
-            "for project " +
-            proj.project_id
-        );
-      projects.set(proj.project_id, {
-        ...proj,
-        sessions: projects.has(proj.project_id)
-          ? projects.get(proj.project_id)!.sessions.concat(maybeSession)
-          : [maybeSession],
-      });
+    const sessionMap = new Map<string, (Project & Session & User)[]>();
+    raw.forEach((proj) => {
+      const current = sessionMap.get(proj.project_id) ?? [];
+      sessionMap.set(proj.project_id, current.concat(proj));
     });
 
     const userCtx = {
       user: {
-        user_id: raw.context[0].user_id,
-        name: raw.context[0].name,
+        user_id: raw[0].user_id,
+        name: raw[0].name,
       } as User,
-      projects: Array.from(projects.values()),
+      projects: Array.from(sessionMap.values()).map((sessions) => {
+        const sesh = sessions[0];
+        return {
+          projectId: sesh.project_id,
+          projectName: sesh.project_name,
+          color: sesh.color,
+          sessions,
+        };
+      }),
     };
 
     res.send({ context: userCtx });

@@ -8,8 +8,8 @@ import { ShowUserId } from "./ShowUserId";
 
 const OptionsList = () => {
   const options = [
-    { key: "showId", component: <ShowUserId /> },
     { key: "sessionDisplay", component: <ProjectsDisplayTable /> },
+    { key: "showId", component: <ShowUserId /> },
   ];
   return (
     <Stack>
@@ -40,7 +40,7 @@ export const OptionsModal = () => {
               children: <OptionsList />,
               centered: true,
               size: "xl",
-            })
+            }),
           );
       }}
     >
